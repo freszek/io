@@ -17,7 +17,6 @@ class UserDao:
             login TEXT NOT NULL,
             password TEXT NOT NULL,
             email TEXT NOT NULL,
-            is_logged INTEGER,
             answer TEXT,
             question TEXT
         )
@@ -44,18 +43,27 @@ class UserDao:
         except:
             print("User not found")
 
+    def get_by_login(self, login) -> User:
+        query = 'SELECT * FROM users WHERE login = ?'
+        cursor = self.conn.execute(query, (login,))
+        result = cursor.fetchone()
+        try:
+            return User(result[0], result[1], result[2], result[3], result[4], result[5])
+        except:
+            print("User not found")
+
     def create_user(self, user: User) -> bool:
-        query = 'INSERT INTO users (login, password, email, is_logged, answer, question) VALUES (?, ?, ?, ?, ?, ?)'
+        query = 'INSERT INTO users (login, password, email, answer, question) VALUES (?, ?, ?, ?, ?)'
         try:
             self.conn.execute(query,
-                              (user.login, self._hash_password(user.password), user.email, user.is_logged, user.answer, user.question))
+                              (user.login, self.hash_password(user.password), user.email, user.answer, user.question))
             self.conn.commit()
             return True
         except:
             return False
 
     def update_user(self, user: User, password: str) -> bool:
-        hashed_password = self._hash_password(password)
+        hashed_password = self.hash_password(password)
         query = 'UPDATE users SET password = ? WHERE id = ?'
         try:
             self.conn.execute(query, (hashed_password, user.id))
@@ -73,7 +81,7 @@ class UserDao:
         except:
             return False
 
-    def _hash_password(self, password):
+    def hash_password(self, password):
         return hashlib.sha256(password.encode()).hexdigest()
 
     def close(self):
