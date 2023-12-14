@@ -7,9 +7,14 @@ class SessionController:
         self.user_dao = UserDao()
 
     def register(self, login, password, email, answer, question):
+        if self.check_login(login):
+            print("Uzytkownik o tym loginie juz istnieje!")
+            return
+
         user = User(0, login, password, email, question, answer)
         self.session_user = user
         self.user_dao.create_user(user)
+        print(f"ZAREJESTROWANY {login}")
 
     def check_login(self, login: str) -> bool:
         users = self.user_dao.get_all()
@@ -46,10 +51,9 @@ class SessionController:
         return user.answer == answer
 
     def log_out(self, login: str):
-        user = next((user for user in self.user_dao.get_all() if self.check_login(login)), None)
+        user = self.user_dao.get_by_login(login)
         if user:
             user.is_logged = False
-            self.user_dao.update_user(user, user.password)
 
     def close(self):
         self.user_dao.close()

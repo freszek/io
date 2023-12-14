@@ -1,84 +1,99 @@
 import tkinter as tk
-from tkinter import ttk
+import customtkinter as ctk
 from tkinter import simpledialog
 from SessionController import SessionController
 
 
-def zarejestruj():
-    email = pole_email.get()
-    login = pole_login.get()
-    haslo = pole_haslo.get()
-    pytanie_pomocnicze = lista_pytan.get()
-    odpowiedz = pole_odpowiedzi.get()
+def register():
+    email = email_field.get()
+    login = login_field.get()
+    password = password_field.get()
+    question = questions_field.get()
+    answer = answer_field.get()
 
-    if "" not in (email, login, haslo, pytanie_pomocnicze, odpowiedz) and len(haslo) >= 8:
-        session.register(login, haslo, email, pytanie_pomocnicze, odpowiedz)
+    if "" in (email, login, password, question, answer):
+        print("Brak wszystkich danych")
+        return
+
+    if len(password) < 8:
+        print("Haslo nie spelnia wymagan (8 znakow)")
+        return
+
+    session.register(login, password, email, question, answer)
 
 
-def zaloguj():
+def login():
     login_window = simpledialog.Toplevel(root)
-    login_window.title("Logowanie")
+    login_window.title("GreenGame")
 
-    etykieta_login_log = ttk.Label(login_window, text="Login:")
-    etykieta_haslo_log = ttk.Label(login_window, text="Hasło:")
-    etykieta_odpowiedz_log = ttk.Label(login_window, text="Odpowiedź:")
+    login_log = ctk.CTkLabel(login_window, text="Login:", fg_color=("white", "gray75"), corner_radius=8,
+                             text_color="black", width=150)
+    password_log = ctk.CTkLabel(login_window, text="Password:", fg_color=("white", "gray75"), corner_radius=8,
+                                text_color="black", width=150)
+    answer_log = ctk.CTkLabel(login_window, text="Answer:", fg_color=("white", "gray75"), corner_radius=8,
+                              text_color="black", width=150)
 
-    pole_login_log = ttk.Entry(login_window)
-    pole_haslo_log = ttk.Entry(login_window, show="*")
-    pole_odpowiedz_log = ttk.Entry(login_window)
+    login_field_log = ctk.CTkEntry(login_window)
+    password_field_log = ctk.CTkEntry(login_window, show="*")
+    answer_field_log = ctk.CTkEntry(login_window)
 
-    przycisk_zaloguj_log = ttk.Button(login_window, text="Zaloguj się",
-                                      command=lambda: zaloguj_log(pole_login_log.get(), pole_haslo_log.get(),
-                                                                  pole_odpowiedz_log.get()))
+    login_button_log = ctk.CTkButton(login_window, text="Login",
+                                     command=lambda: log_in(login_field_log.get(), password_field_log.get(),
+                                                            answer_field_log.get()))
 
-    etykieta_login_log.grid(row=0, column=0, padx=10, pady=5, sticky="e")
-    etykieta_haslo_log.grid(row=1, column=0, padx=10, pady=5, sticky="e")
-    etykieta_odpowiedz_log.grid(row=2, column=0, padx=10, pady=5, sticky="e")
+    login_log.grid(row=0, column=0, padx=10, pady=5, sticky="e")
+    password_log.grid(row=1, column=0, padx=10, pady=5, sticky="e")
+    answer_log.grid(row=2, column=0, padx=10, pady=5, sticky="e")
 
-    pole_login_log.grid(row=0, column=1, padx=10, pady=5)
-    pole_haslo_log.grid(row=1, column=1, padx=10, pady=5)
-    pole_odpowiedz_log.grid(row=2, column=1, padx=10, pady=5)
+    login_field_log.grid(row=0, column=1, padx=10, pady=5)
+    password_field_log.grid(row=1, column=1, padx=10, pady=5)
+    answer_field_log.grid(row=2, column=1, padx=10, pady=5)
 
-    przycisk_zaloguj_log.grid(row=3, column=1, pady=10)
+    login_button_log.grid(row=3, column=0, pady=10, columnspan=3)
 
 
-def zaloguj_log(login, haslo, odpowiedz):
-    session.log_in(login, haslo, odpowiedz)
+def log_in(login, password, answer):
+    session.log_in(login, password, answer)
 
 
 root = tk.Tk()
-root.title("Rejestracja")
+root.title("GreenGame")
+root.resizable(False, False)
 
-etykieta_email = ttk.Label(root, text="Email:")
-etykieta_login = ttk.Label(root, text="Login:")
-etykieta_haslo = ttk.Label(root, text="Hasło:")
-etykieta_pytanie = ttk.Label(root, text="Pytanie pomocnicze:")
-etykieta_odpowiedz = ttk.Label(root, text="Odpowiedź:")
+email_string = ctk.CTkLabel(root, text="Email:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
+                            width=150)
+login_string = ctk.CTkLabel(root, text="Login:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
+                            width=150)
+password_string = ctk.CTkLabel(root, text="Password:", fg_color=("white", "gray75"), corner_radius=8,
+                               text_color="black", width=150)
+question_string = ctk.CTkLabel(root, text="Question:", fg_color=("white", "gray75"), corner_radius=8,
+                               text_color="black", width=150)
+answer_string = ctk.CTkLabel(root, text="Answer:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
+                             width=150)
 
-pole_email = ttk.Entry(root)
-pole_login = ttk.Entry(root)
-pole_haslo = ttk.Entry(root, show="*")
-lista_pytan = ttk.Combobox(root,
-                           values=["Jakie jest imię twojego zwierzaka?", "Gdzie urodziłeś się?", "Ulubiona książka?"])
-pole_odpowiedzi = ttk.Entry(root)
+email_field = ctk.CTkEntry(root)
+login_field = ctk.CTkEntry(root)
+password_field = ctk.CTkEntry(root, show="*")
+questions_field = ctk.CTkComboBox(root, values=["What is your pet's name?", "Where you were born?", "Favourite book?"])
+answer_field = ctk.CTkEntry(root)
 
-przycisk_zarejestruj = ttk.Button(root, text="Zarejestruj", command=zarejestruj)
-przycisk_zaloguj = ttk.Button(root, text="Masz już konto? Zaloguj się", command=zaloguj)
+register_button = ctk.CTkButton(root, text="Register", command=register)
+login_button = ctk.CTkButton(root, text="Already have an account? Log in", command=login)
 
-etykieta_email.grid(row=0, column=0, padx=10, pady=5, sticky="e")
-etykieta_login.grid(row=1, column=0, padx=10, pady=5, sticky="e")
-etykieta_haslo.grid(row=2, column=0, padx=10, pady=5, sticky="e")
-etykieta_pytanie.grid(row=3, column=0, padx=10, pady=5, sticky="e")
-etykieta_odpowiedz.grid(row=4, column=0, padx=10, pady=5, sticky="e")
+email_string.grid(row=0, column=0, padx=10, pady=5, sticky="e")
+login_string.grid(row=1, column=0, padx=10, pady=5, sticky="e")
+password_string.grid(row=2, column=0, padx=10, pady=5, sticky="e")
+question_string.grid(row=3, column=0, padx=10, pady=5, sticky="e")
+answer_string.grid(row=4, column=0, padx=10, pady=5, sticky="e")
 
-pole_email.grid(row=0, column=1, padx=10, pady=5)
-pole_login.grid(row=1, column=1, padx=10, pady=5)
-pole_haslo.grid(row=2, column=1, padx=10, pady=5)
-lista_pytan.grid(row=3, column=1, padx=10, pady=5)
-pole_odpowiedzi.grid(row=4, column=1, padx=10, pady=5)
+email_field.grid(row=0, column=1, padx=10, pady=5)
+login_field.grid(row=1, column=1, padx=10, pady=5)
+password_field.grid(row=2, column=1, padx=10, pady=5)
+questions_field.grid(row=3, column=1, padx=10, pady=5)
+answer_field.grid(row=4, column=1, padx=10, pady=5)
 
-przycisk_zarejestruj.grid(row=5, column=1, pady=10, columnspan=2, sticky="nsew")
-przycisk_zaloguj.grid(row=6, column=1, pady=10, columnspan=2, sticky="nsew")
+register_button.grid(row=5, column=0, pady=10, columnspan=3)
+login_button.grid(row=6, column=0, pady=10, columnspan=3)
 
 session = SessionController()
 root.mainloop()
