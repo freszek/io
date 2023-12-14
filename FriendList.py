@@ -4,6 +4,25 @@ class User:
     def __init__(self, id, name):
         self.id = id
         self.name = name
+        
+        
+class Button:
+    def __init__(self, x, y, width, height, text):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = text
+        self.font = pygame.font.SysFont("Yu Gothic UI", 30, bold=True)
+        self.color = (144, 238, 144)
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, self.color, self.rect)
+        text_surface = self.font.render(self.text, True, (0, 100, 0))
+        screen.blit(text_surface, (self.rect.x + 10, self.rect.y + 10))
+
+    def is_clicked(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and self.rect.collidepoint(event.pos):
+            return True
+        return False
+
 
 class InputBox:
     def __init__(self, x, y, w, h, text=''):
