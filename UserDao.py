@@ -45,9 +45,8 @@ class UserDao:
         self.conn.execute(query)
         self.conn.commit()
 
-    def add_friend(user_id, new_friend_id):
-        conn = sqlite3.connect('twoja_baza_danych.db')
-        cursor = conn.cursor()
+    def add_friend(self, user_id, new_friend_id):
+        cursor = self.conn.cursor()
 
         cursor.execute(
             "SELECT friend_1, friend_2, friend_3, friend_4, friend_5, friend_6, friend_7, friend_8, friend_9, friend_10, friend_11, friend_12 FROM user_friends WHERE user_id = ?",
@@ -63,10 +62,32 @@ class UserDao:
         if column_to_update:
             query = f"UPDATE user_friends SET {column_to_update} = ? WHERE user_id = ?"
             cursor.execute(query, (new_friend_id, user_id))
-            conn.commit()
+            self.conn.commit()
 
         cursor.close()
-        conn.close()
+        self.conn.close()
+
+    def delete_friend(self, user_id, friend_id):
+        cursor = self.conn.cursor()
+
+        cursor.execute(
+            "SELECT friend_1, friend_2, friend_3, friend_4, friend_5, friend_6, friend_7, friend_8, friend_9, friend_10, friend_11, friend_12 FROM user_friends WHERE user_id = ?",
+            (user_id,))
+        friends = cursor.fetchone()
+
+        column_to_update = None
+        for i in range(12):
+            if friends[i] == friend_id:
+                column_to_update = f"friend_{i + 1}"
+                break
+
+        if column_to_update:
+            query = f"UPDATE user_friends SET {column_to_update} = NULL WHERE user_id = ?"
+            cursor.execute(query, (user_id))
+            self.conn.commit()
+
+        cursor.close()
+        self.conn.close()
 
     def get_name(self, user):
         return ""
