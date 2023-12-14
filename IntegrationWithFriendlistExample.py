@@ -1,5 +1,9 @@
 import pygame
+import self as self
+
 from FriendList import FriendList, User
+from UserDao import UserDao
+
 
 class Button:
     def __init__(self, x, y, width, height, text):
@@ -24,7 +28,8 @@ pygame.init()
 DISPLAY_WIDTH, DISPLAY_HEIGHT = 800, 600
 screen = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
 
-example_users = [User(f"User{i}") for i in range(12)]
+example_users = [User(i, f"User{i}") for i in range(12)]
+#users_list = UserDao.get_all()
 
 FRIENDS_BUTTON_X = 250
 FRIENDS_BUTTON_Y = 50
