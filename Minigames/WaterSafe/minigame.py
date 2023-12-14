@@ -202,8 +202,10 @@ while running:
             if clicked_sprites and not clicked_sprites[0].zakrecony:
                 player.selected_tap = clicked_sprites[0]
                 player.moving_to_tap = True
+                player.moving_to_position = False
             else:
                 player.target_position = pos
+                player.moving_to_tap = False
                 player.moving_to_position = True
         elif event.type == pygame.VIDEORESIZE:
             WIDTH, HEIGHT = event.w, event.h
