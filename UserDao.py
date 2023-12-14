@@ -14,9 +14,9 @@ class UserDao:
         query = '''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            login TEXT NOT NULL,
+            login TEXT NOT NULL UNIQUE,
             password TEXT NOT NULL,
-            email TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
             answer TEXT,
             question TEXT
         )
