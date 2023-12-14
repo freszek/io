@@ -6,7 +6,7 @@ class Button:
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
         self.font = pygame.font.Font(None, 30)
-        self.color = (100, 200, 255)
+        self.color = (0, 255, 0)
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
@@ -24,22 +24,31 @@ pygame.init()
 DISPLAY_WIDTH, DISPLAY_HEIGHT = 800, 600
 screen = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
 
-example_users = [User(f"User{i}") for i in range(5)]
-friend_list = FriendList(100, 100, 200, 300, example_users)
-toggle_button = Button(50, 50, 200, 50, "Toggle Friends")
+example_users = [User(f"User{i}") for i in range(12)]
+
+FRIENDS_BUTTON_X = 250
+FRIENDS_BUTTON_Y = 50
+
+toggle_button = Button(FRIENDS_BUTTON_X, FRIENDS_BUTTON_Y, 100, 50, "Friends")
+
+friend_list = FriendList(FRIENDS_BUTTON_X - 10, FRIENDS_BUTTON_Y + 50, 100, 500, example_users)
 
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        
-        if toggle_button.is_clicked(event):
+        elif toggle_button.is_clicked(event):
             friend_list.toggle_visibility()
+        
+        friend_list.handle_event(event)
 
-    screen.fill((255, 255, 255))   
+    screen.fill((255, 255, 255))
+    
     toggle_button.draw(screen)
-    friend_list.draw(screen)    
+
+    friend_list.draw(screen)
+    
     pygame.display.update()
 
 pygame.quit()
