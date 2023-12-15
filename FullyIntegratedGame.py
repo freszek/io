@@ -1,8 +1,6 @@
+
 import pygame
 import sys
-from FriendList import FriendList, User, Button
-#from gierka import show_menu_and_start_game
-
 
 pygame.init()
 
@@ -42,7 +40,6 @@ def create_button(text, position, command):
 
 def start_game():
     print("Start Game")
-    #show_menu_and_start_game()
 
 def exit_game():
     print("Exit Game")
@@ -52,31 +49,31 @@ def exit_game():
 def settings():
     print("Settings")
 
+def handle_events():
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
 logo_image = pygame.image.load("logo.png")
 logo_image = pygame.transform.scale(logo_image, (250, 250))
 logo_rect = logo_image.get_rect(center=(width // 2, height // 5.5))
 
+from FriendList import FriendList, User, Button
+
 example_users = [User(i, f"User{i}") for i in range(12)]
 
+# Adjusting the position of the friend list to the left side
 FRIENDS_BUTTON_X = 10
 FRIENDS_BUTTON_Y = 50
 toggle_button = Button(FRIENDS_BUTTON_X, FRIENDS_BUTTON_Y, 140, 50, "Znajomi")
 friend_list = FriendList(FRIENDS_BUTTON_X, FRIENDS_BUTTON_Y + 50, 140, 500, example_users)
 
-def handle_events(toggle_button, friend_list):
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        elif toggle_button.is_clicked(event):
-            friend_list.toggle_visibility()
-
-        friend_list.handle_event(event)
-
 while True:
     screen.blit(background_image, (0, 0))
     screen.blit(logo_image, logo_rect)
 
+    # Drawing buttons
     buttons_data = [
         {"text": "Start gry", "position": (width // 2, 2 * height // 3 - 120), "command": start_game},
         {"text": "Ustawienia", "position": (width // 2, 2 * height // 3 - 20), "command": settings},
@@ -86,9 +83,10 @@ while True:
     for button_data in buttons_data:
         create_button(button_data["text"], button_data["position"], button_data["command"])
 
+    # Drawing toggle button and friend list
     toggle_button.draw(screen)
     friend_list.draw(screen)
 
     pygame.display.flip()
 
-    handle_events(toggle_button, friend_list)
+    handle_events()
