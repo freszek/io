@@ -2,21 +2,14 @@ from DifficultyLevel import DifficultyLevel
 from EventInterface import EventInterface
 from DifficultyLevel import to_string
 from database_setup import db
-import random
-import string
 import time
 
 
-def get_random_string(length):
-    letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for _ in range(length))
-
-
 class Event(EventInterface):
-    def __init__(self, event_id, name, level):
+    def __init__(self, event_id, name):
         self.__event_id = event_id
         self.__name = name
-        self.__level = level
+        self.__level = DifficultyLevel.EASY
         self.__questions = []
         self.__score = 0
         self.__time = 0
@@ -51,15 +44,17 @@ class Event(EventInterface):
         qu = db.get_questions(self.__event_id, to_string(self.__level))
         self.__questions = qu
 
-    def end_event(self):
-        # also send score to ranking module
-        db.save_statistics(self.__event_id, "0", self.__score, time.perf_counter() - self.__time)
+    def end_event(self):  # TODO: wziąć id gracza zamiast 0, ale to scenariusz ma dac metode
+        # TODO: zapis punktów do rankingu
+        db.save_statistics(self.__event_id, 0, self.__score,
+                           round(time.perf_counter() - self.__time, 3), to_string(self.__level))
+        db.set_achievements(0)
         self.__time = 0
         self.__questions = []
         self.__score = 0
 
-    def can_player_join(self):
-        pass
+    def can_player_join(self):  # TODO: wziąć liczbę dotychczasowych punktów gracza od scenariusza metoda
+        return True
 
     def calculate_score(self):
         if self.__level == DifficultyLevel.EASY:
