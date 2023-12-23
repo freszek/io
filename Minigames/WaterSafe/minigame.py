@@ -8,7 +8,7 @@ pygame.init()
 class Player(pygame.sprite.Sprite):
     def __init__(self, width, height):
         super().__init__()
-        self.image = pygame.image.load("C:\\Users\\Krzys\\PycharmProjects\\EkoGame\\Minigames\\WaterSafe\\player_icon.png")
+        self.image = pygame.image.load("/Minigames/WaterSafe/pics/player_icon.png")
         self.image = pygame.transform.scale(self.image, (80, 80))
         self.rect = self.image.get_rect()
         self.rect.center = (width // 2, height // 2)
@@ -51,8 +51,8 @@ class Tap(pygame.sprite.Sprite):
 
     def __init__(self, x, y, water_flow_rate=0.1):
         super().__init__()
-        self.image_zakrecony = pygame.image.load("C:\\Users\\Krzys\\PycharmProjects\\EkoGame\\Minigames\\WaterSafe\\tap_icon.png")
-        self.image_odkrecany = pygame.image.load("C:\\Users\\Krzys\\PycharmProjects\\EkoGame\\Minigames\\WaterSafe\\odkrecony_tap.png")
+        self.image_zakrecony = pygame.image.load("/Minigames/WaterSafe/pics/tap_icon.png")
+        self.image_odkrecany = pygame.image.load("/Minigames/WaterSafe/pics/odkrecony_tap.png")
         self.image = self.image_zakrecony
         self.image = pygame.transform.scale(self.image, (self.TAP_SIZE, self.TAP_SIZE))
         self.rect = self.image.get_rect()
@@ -75,7 +75,7 @@ class NPC(pygame.sprite.Sprite):
 
     def __init__(self, all_taps, game):
         super().__init__()
-        self.image = pygame.image.load("C:\\Users\\Krzys\\PycharmProjects\\EkoGame\\Minigames\\WaterSafe\\npc_icon.png")
+        self.image = pygame.image.load("/Minigames/WaterSafe/pics/npc_icon.png")
         self.image = pygame.transform.scale(self.image, (self.NPC_SIZE, self.NPC_SIZE))
         self.rect = self.image.get_rect()
         self.rect.center = (game.WIDTH // 4, game.HEIGHT // 4)
@@ -118,13 +118,16 @@ class WaterSafeGame:
         self.NPC_SIZE = 50
         self.WHITE = (255, 255, 255)
         self.duration = duration
+        self.game_running = False
+        self.start_button_rect = pygame.Rect(self.WIDTH // 3, self.HEIGHT // 2, 200, 50)
+        self.start_button_color = (0, 255, 0)
 
         pygame.init()
 
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.DOUBLEBUF | pygame.RESIZABLE)
         self.clock = pygame.time.Clock()
 
-        self.background = pygame.image.load("C:\\Users\\Krzys\\PycharmProjects\\EkoGame\\Minigames\\WaterSafe\\background.jpg")
+        self.background = pygame.image.load("https://github.com/freszek/io/blob/9d6900fb110fdc8892449c9a8a7e87312a9284eb/Minigames/WaterSafe/pics/background.jpg")
         self.background = pygame.transform.scale(self.background, (self.WIDTH, self.HEIGHT))
 
         self.instruction_text = [
@@ -157,7 +160,15 @@ class WaterSafeGame:
         font = pygame.font.Font(None, int(36 * min(self.WIDTH, self.HEIGHT) / 800))
         for i, line in enumerate(self.instruction_text):
             text = font.render(line, True, self.WHITE)
-            self.screen.blit(text, (int(10 * min(self.WIDTH, self.HEIGHT) / 800), int((10 + i * 30) * min(self.WIDTH, self.HEIGHT) / 800)))
+            self.screen.blit(text, (int(10 * min(self.WIDTH, self.HEIGHT) / 800),
+                                    int((10 + i * 30) * min(self.WIDTH, self.HEIGHT) / 800)))
+
+
+        pygame.draw.rect(self.screen, self.start_button_color, self.start_button_rect)
+        font = pygame.font.Font(None, int(30 * min(self.WIDTH, self.HEIGHT) / 800))
+        text = font.render("Start", True, (0, 0, 0))
+        text_rect = text.get_rect(center=self.start_button_rect.center)
+        self.screen.blit(text, text_rect)
 
         pygame.display.flip()
 
@@ -168,7 +179,9 @@ class WaterSafeGame:
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                    waiting_for_start = False
+                    if self.start_button_rect.collidepoint(event.pos):
+                        self.game_running = True
+                        waiting_for_start = False
 
     def end_game(self):
         self.screen.fill((0, 0, 0))
@@ -212,12 +225,13 @@ class WaterSafeGame:
         npc2 = NPC(all_taps, self)
         all_sprites.add(npc1, npc2)
 
-        running = True
+
+
         elapsed_time = 0
-        while running:
+        while self.game_running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    self.game_running = False
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     pos = pygame.mouse.get_pos()
 
@@ -256,7 +270,9 @@ class WaterSafeGame:
             elapsed_time += self.clock.get_time() / 1000
 
             if elapsed_time >= self.duration or self.WATER_COUNTER <= 0:
-                self.end_game()
+                self.game_running = False
+                result = self.end_game()
                 pygame.quit()
+                return result
 
             self.clock.tick(self.FPS)
