@@ -18,4 +18,3 @@ class Dice(object):
 
     def hide(self):
         self.dicemap[self.number1].unset_x_y()
-

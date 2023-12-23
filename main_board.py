@@ -1,12 +1,10 @@
 import pygame
-import mainboard_ui
-import mglobals
-import utils
 
-from player import Player
-from player_avatar import PlayerAvatar
-from game_rules import GameRulesApp
+import mglobals
 import round
+from game_rules import GameRulesApp
+from player_avatar import PlayerAvatar
+
 
 def display_rules():
     # showing game rules
@@ -27,6 +25,6 @@ def main():
     pygame.quit()
     quit()
 
+
 if __name__ == '__main__':
     main()
-

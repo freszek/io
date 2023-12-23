@@ -4,26 +4,14 @@ import random
 
 pygame.init()
 
-WIDTH, HEIGHT = 800, 600
-PLAYER_SIZE = 80
-TAP_SIZE = 80
-WATER_DROP_SIZE = 5
-NPC_SIZE = 50
-FPS = 60
-WATER_COUNTER = 10
-
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-GREEN = (0, 255, 0)
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, width, height):
         super().__init__()
-        self.image = pygame.image.load("player_icon.png")
-        self.image = pygame.transform.scale(self.image, (PLAYER_SIZE, PLAYER_SIZE))
+        self.image = pygame.image.load("C:\\Users\\Krzys\\PycharmProjects\\EkoGame\\Minigames\\WaterSafe\\player_icon.png")
+        self.image = pygame.transform.scale(self.image, (80, 80))
         self.rect = self.image.get_rect()
-        self.rect.center = (WIDTH // 2, HEIGHT // 2)
+        self.rect.center = (width // 2, height // 2)
         self.selected_tap = None
         self.moving_to_tap = False
         self.moving_to_position = False
@@ -59,40 +47,46 @@ class Player(pygame.sprite.Sprite):
 
 
 class Tap(pygame.sprite.Sprite):
+    TAP_SIZE = 80
+
     def __init__(self, x, y, water_flow_rate=0.1):
         super().__init__()
-        self.image_zakrecony = pygame.image.load("tap_icon.png")
-        self.image_odkrecany = pygame.image.load("odkrecony_tap.png")
+        self.image_zakrecony = pygame.image.load("C:\\Users\\Krzys\\PycharmProjects\\EkoGame\\Minigames\\WaterSafe\\tap_icon.png")
+        self.image_odkrecany = pygame.image.load("C:\\Users\\Krzys\\PycharmProjects\\EkoGame\\Minigames\\WaterSafe\\odkrecony_tap.png")
         self.image = self.image_zakrecony
-        self.image = pygame.transform.scale(self.image, (TAP_SIZE, TAP_SIZE))
+        self.image = pygame.transform.scale(self.image, (self.TAP_SIZE, self.TAP_SIZE))
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.zakrecony = True
         self.water_flow_rate = water_flow_rate
 
-
     def update(self):
         if not self.zakrecony:
             self.image = self.image_odkrecany
-            self.image = pygame.transform.scale(self.image, (TAP_SIZE, TAP_SIZE))
+            self.image = pygame.transform.scale(self.image, (self.TAP_SIZE, self.TAP_SIZE))
         else:
             self.image = self.image_zakrecony
-            self.image = pygame.transform.scale(self.image, (TAP_SIZE+20, TAP_SIZE+20))
+            self.image = pygame.transform.scale(self.image, (self.TAP_SIZE + 20, self.TAP_SIZE + 20))
+
 
 
 class NPC(pygame.sprite.Sprite):
-    def __init__(self):
+    NPC_SIZE = 50
+
+    def __init__(self, all_taps, game):
         super().__init__()
-        self.image = pygame.image.load("npc_icon.png")
-        self.image = pygame.transform.scale(self.image, (NPC_SIZE, NPC_SIZE))
+        self.image = pygame.image.load("C:\\Users\\Krzys\\PycharmProjects\\EkoGame\\Minigames\\WaterSafe\\npc_icon.png")
+        self.image = pygame.transform.scale(self.image, (self.NPC_SIZE, self.NPC_SIZE))
         self.rect = self.image.get_rect()
-        self.rect.center = (WIDTH // 4, HEIGHT // 4)
+        self.rect.center = (game.WIDTH // 4, game.HEIGHT // 4)
         self.target_tap = None
         self.moving_to_tap = False
+        self.all_taps = all_taps
+        self.water_counter = game.WATER_COUNTER
 
     def update(self):
         if not self.moving_to_tap:
-            available_taps = [t for t in all_taps.sprites() if t.zakrecony]
+            available_taps = [t for t in self.all_taps.sprites() if t.zakrecony]
             if available_taps:
                 self.target_tap = random.choice(available_taps)
                 self.moving_to_tap = True
@@ -110,152 +104,159 @@ class NPC(pygame.sprite.Sprite):
             else:
                 self.moving_to_tap = False
                 self.target_tap.zakrecony = False
-                global WATER_COUNTER
-                WATER_COUNTER -= self.target_tap.water_flow_rate
+                self.water_counter -= self.target_tap.water_flow_rate
 
 
-def generate_tap_positions(num_taps):
-    tap_positions = []
-    occupied_rects = []
+class WaterSafeGame:
+    def __init__(self, width=800, height=600, duration=30):
+        self.WIDTH = width
+        self.HEIGHT = height
+        self.PLAYER_SIZE = 80
+        self.TAP_SIZE = 80
+        self.FPS = 60
+        self.WATER_COUNTER = 15
+        self.NPC_SIZE = 50
+        self.WHITE = (255, 255, 255)
+        self.duration = duration
 
-    for _ in range(num_taps):
-        tap_rect = pygame.Rect(0, 0, TAP_SIZE, TAP_SIZE)
-        while True:
-            tap_rect.topleft = (random.randint(0, WIDTH - TAP_SIZE), random.randint(0, HEIGHT - TAP_SIZE))
-            if not any(tap_rect.colliderect(occupied_rect) for occupied_rect in occupied_rects):
-                occupied_rects.append(tap_rect.copy())
-                tap_positions.append((tap_rect.x, tap_rect.y, 0.1))
-                break
+        pygame.init()
 
-    return tap_positions
+        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.DOUBLEBUF | pygame.RESIZABLE)
+        self.clock = pygame.time.Clock()
 
+        self.background = pygame.image.load("C:\\Users\\Krzys\\PycharmProjects\\EkoGame\\Minigames\\WaterSafe\\background.jpg")
+        self.background = pygame.transform.scale(self.background, (self.WIDTH, self.HEIGHT))
 
-def show_start_screen(instruction_text):
-    screen.fill((0, 0, 0))
+        self.instruction_text = [
+            "Witaj w minigrze WaterSafe!",
+            "Twoim zadaniem jest oszczędzanie wody, zakręcając krany.",
+            "Kliknij lewym przyciskiem myszy na kran, aby go zakręcić.",
+            "Możesz również kliknąć w inne miejsce, aby się przemieszczać.",
+            "Masz 30 sekund na ukończenie gry. Oszczędzaj wodę!",
+            "Kliknij dowolny klawisz lub lewy przycisk myszy, aby rozpocząć."
+        ]
 
-    font = pygame.font.Font(None, int(36 * min(WIDTH, HEIGHT) / 800))
-    for i, line in enumerate(instruction_text):
-        text = font.render(line, True, WHITE)
-        screen.blit(text, (int(10 * min(WIDTH, HEIGHT) / 800), int((10 + i * 30) * min(WIDTH, HEIGHT) / 800)))
+    def generate_tap_positions(self, num_taps):
+        tap_positions = []
+        occupied_rects = []
 
-    pygame.display.flip()
+        for _ in range(num_taps):
+            tap_rect = pygame.Rect(0, 0, self.TAP_SIZE, self.TAP_SIZE)
+            while True:
+                tap_rect.topleft = (random.randint(0, self.WIDTH - self.TAP_SIZE), random.randint(0, self.HEIGHT - self.TAP_SIZE))
+                if not any(tap_rect.colliderect(occupied_rect) for occupied_rect in occupied_rects):
+                    occupied_rects.append(tap_rect.copy())
+                    tap_positions.append((tap_rect.x, tap_rect.y, 0.1))
+                    break
 
-    waiting_for_start = True
-    while waiting_for_start:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                waiting_for_start = False
+        return tap_positions
 
+    def show_start_screen(self):
+        self.screen.fill((0, 0, 0))
 
-flags = pygame.DOUBLEBUF | pygame.RESIZABLE
-screen = pygame.display.set_mode((WIDTH, HEIGHT), flags)
+        font = pygame.font.Font(None, int(36 * min(self.WIDTH, self.HEIGHT) / 800))
+        for i, line in enumerate(self.instruction_text):
+            text = font.render(line, True, self.WHITE)
+            self.screen.blit(text, (int(10 * min(self.WIDTH, self.HEIGHT) / 800), int((10 + i * 30) * min(self.WIDTH, self.HEIGHT) / 800)))
 
-background = pygame.image.load("background.jpg")
-background = pygame.transform.scale(background, (WIDTH, HEIGHT))
+        pygame.display.flip()
 
-instruction_text = [
-    "Witaj w minigrze WaterSafe!",
-    "Twoim zadaniem jest oszczędzanie wody, zakręcając krany.",
-    "Kliknij lewym przyciskiem myszy na kran, aby go zakręcić.",
-    "Możesz również kliknąć w inne miejsce, aby się przemieszczać.",
-    "Masz 30 sekund na ukończenie gry. Oszczędzaj wodę!",
-    "Kliknij dowolny klawisz lub lewy przycisk myszy, aby rozpocząć."
-]
+        waiting_for_start = True
+        while waiting_for_start:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                    waiting_for_start = False
 
-show_start_screen(instruction_text)
+    def end_game(self):
+        self.screen.fill((0, 0, 0))
+        font = pygame.font.Font(None, int(72 * min(self.WIDTH, self.HEIGHT) / 800))
+        result_text1 = font.render("Koniec gry!", True, self.WHITE)
+        result_text2 = font.render(f"Pozostała woda: {self.WATER_COUNTER:.1f} litrów", True, self.WHITE)
+        result = self.WATER_COUNTER * 10
+        result_text3 = font.render(f"Twój wynik: {result:.0f} punkty/ów", True, self.WHITE)
+        self.screen.blit(result_text1, (self.WIDTH // 3, self.HEIGHT // 4))
+        self.screen.blit(result_text2, (self.WIDTH // 8, self.HEIGHT // 3))
+        self.screen.blit(result_text3, (self.WIDTH // 7, self.HEIGHT // 2))
+        pygame.display.flip()
 
-clock = pygame.time.Clock()
+        waiting_for_exit = True
+        while waiting_for_exit:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    waiting_for_exit = False
 
-player = Player()
-all_sprites = pygame.sprite.Group()
-all_sprites.add(player)
+        return result
 
-all_taps_list = []
+    def run_game(self):
+        self.show_start_screen()
 
-tap_positions = generate_tap_positions(6)
+        player = Player(self.WIDTH, self.HEIGHT)
+        all_sprites = pygame.sprite.Group()
+        all_sprites.add(player)
 
-for pos in tap_positions:
-    tap = Tap(*pos)
-    all_sprites.add(tap)
-    all_taps_list.append(tap)
+        all_taps_list = []
 
-all_taps = pygame.sprite.Group(all_taps_list)
+        tap_positions = self.generate_tap_positions(6)
 
-npc1 = NPC()
-npc2 = NPC()
-all_sprites.add(npc1, npc2)
+        for pos in tap_positions:
+            tap = Tap(*pos)
+            all_sprites.add(tap)
+            all_taps_list.append(tap)
 
-running = True
-game_duration = 30
-elapsed_time = 0
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            pos = pygame.mouse.get_pos()
+        all_taps = pygame.sprite.Group(all_taps_list)
 
-            clicked_sprites = [s for s in all_taps.sprites() if s.rect.collidepoint(pos)]
-            if clicked_sprites and not clicked_sprites[0].zakrecony:
-                player.selected_tap = clicked_sprites[0]
-                player.moving_to_tap = True
-                player.moving_to_position = False
-            else:
-                player.target_position = pos
-                player.moving_to_tap = False
-                player.moving_to_position = True
-        elif event.type == pygame.VIDEORESIZE:
-            WIDTH, HEIGHT = event.w, event.h
-            screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
+        npc1 = NPC(all_taps, self)
+        npc2 = NPC(all_taps, self)
+        all_sprites.add(npc1, npc2)
+
+        running = True
+        elapsed_time = 0
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    pos = pygame.mouse.get_pos()
+
+                    clicked_sprites = [s for s in all_taps.sprites() if s.rect.collidepoint(pos)]
+                    if clicked_sprites and not clicked_sprites[0].zakrecony:
+                        player.selected_tap = clicked_sprites[0]
+                        player.moving_to_tap = True
+                    else:
+                        player.target_position = pos
+                        player.moving_to_position = True
+                elif event.type == pygame.VIDEORESIZE:
+                    self.WIDTH, self.HEIGHT = event.w, event.h
+                    self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.RESIZABLE)
+                    for tap in all_taps.sprites():
+                        tap.rect.topleft = (random.randint(0, self.WIDTH - self.TAP_SIZE), random.randint(0, self.HEIGHT - self.TAP_SIZE))
+                    player.rect.center = (self.WIDTH // 2, self.HEIGHT // 2)
+
             for tap in all_taps.sprites():
-                tap.rect.topleft = (random.randint(0, WIDTH - TAP_SIZE), random.randint(0, HEIGHT - TAP_SIZE))
-            player.rect.center = (WIDTH // 2, HEIGHT // 2)
+                if not tap.zakrecony:
+                    self.WATER_COUNTER -= tap.water_flow_rate / self.FPS
+            all_sprites.update()
 
-    for tap in all_taps.sprites():
-        if not tap.zakrecony:
-            WATER_COUNTER -= tap.water_flow_rate / FPS
-    all_sprites.update()
+            self.screen.blit(self.background, (0, 0))
+            all_sprites.draw(self.screen)
 
-    screen.blit(background, (0, 0))
-    all_sprites.draw(screen)
+            font = pygame.font.Font(None, int(36 * min(self.WIDTH, self.HEIGHT) / 800))
+            text = font.render(f"Woda: {self.WATER_COUNTER:.1f} litrów", True, self.WHITE)
+            self.screen.blit(text, (int(10 * min(self.WIDTH, self.HEIGHT) / 800), int(10 * min(self.WIDTH, self.HEIGHT) / 800)))
 
-    font = pygame.font.Font(None, int(36 * min(WIDTH, HEIGHT) / 800))
-    text = font.render(f"Woda: {WATER_COUNTER:.1f} litrów", True, WHITE)
-    screen.blit(text, (int(10 * min(WIDTH, HEIGHT) / 800), int(10 * min(WIDTH, HEIGHT) / 800)))
+            timer_font = pygame.font.Font(None, int(36 * min(self.WIDTH, self.HEIGHT) / 800))
+            timer_text = timer_font.render(f"Czas: {int(self.duration - elapsed_time)} s", True, self.WHITE)
+            self.screen.blit(timer_text, (self.WIDTH - int(150 * min(self.WIDTH, self.HEIGHT) / 800), int(10 * min(self.WIDTH, self.HEIGHT) / 800)))
 
-    timer_font = pygame.font.Font(None, int(36 * min(WIDTH, HEIGHT) / 800))
-    timer_text = timer_font.render(f"Czas: {int(game_duration - elapsed_time)} s", True, WHITE)
-    screen.blit(timer_text, (WIDTH - int(150 * min(WIDTH, HEIGHT) / 800), int(10 * min(WIDTH, HEIGHT) / 800)))
+            pygame.display.flip()
 
-    pygame.display.flip()
+            elapsed_time += self.clock.get_time() / 1000
 
-    elapsed_time += clock.get_time() / 1000
+            if elapsed_time >= self.duration or self.WATER_COUNTER <= 0:
+                self.end_game()
+                pygame.quit()
 
-    if elapsed_time >= game_duration:
-        running = False
-
-    if WATER_COUNTER <= 0:
-        running = False
-
-    clock.tick(FPS)
-
-
-screen.fill((0, 0, 0))
-font = pygame.font.Font(None, int(72 * min(WIDTH, HEIGHT) / 800))
-result_text1 = font.render("Koniec gry!", True, WHITE)
-result_text2 = font.render(f"Pozostała woda: {WATER_COUNTER:.1f} litrów", True, WHITE)
-screen.blit(result_text1, (WIDTH // 3, HEIGHT // 3))
-screen.blit(result_text2, (WIDTH // 8, HEIGHT // 2))
-pygame.display.flip()
-
-waiting_for_exit = True
-while waiting_for_exit:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            waiting_for_exit = False
-
-pygame.quit()
-sys.exit()
+            self.clock.tick(self.FPS)

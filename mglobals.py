@@ -11,7 +11,7 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 BROWN = (165, 42, 42)
-PURPLE = (128,0,128)
+PURPLE = (128, 0, 128)
 BLUE = (0, 0, 255)
 SKY_BLUE = (576, 226, 255)
 DEEP_SKY_BLUE = (0, 191, 255)
@@ -24,7 +24,7 @@ YELLOW = (255, 255, 0)
 DARKER_YELLOW = (200, 160, 30)
 GREEN = (0, 255, 0)
 SEA_GREEN = (46, 139, 87)
-GRAY = (169,169,169)
+GRAY = (169, 169, 169)
 
 PLAYER_ONE = 'Player 1'
 PLAYER_TWO = 'Player 2'
@@ -47,14 +47,14 @@ color_map = {
         'royal_blue': ROYAL_BLUE,
         'white': WHITE,
         'gray': GRAY,
-};
+}
 
 fontsize_map = {
         'big': 50,
         'mid': 25,
         'small_p': 15,
         'small': 12,
-};
+}
 
 GD = None
 CLK = None
@@ -94,9 +94,9 @@ def init_pygame():
     global GD, CLK
     pygame.init()
     # Can adjust game to screen size
-        # global DISPLAY_H, DISPLAY_W
-        # screen_info = pygame.display.Info()
-        # DISPLAY_W, DISPLAY_H = screen_info.current_w, screen_info.current_h
+    # global DISPLAY_H, DISPLAY_W
+    # screen_info = pygame.display.Info()
+    # DISPLAY_W, DISPLAY_H = screen_info.current_w, screen_info.current_h
     GD = pygame.display.set_mode((DISPLAY_W, DISPLAY_H))
     pygame.display.set_caption('Green Game')
     CLK = pygame.time.Clock()
@@ -105,4 +105,3 @@ def init_pygame():
 def init():
     init_pygame()
     load_imgs()
-

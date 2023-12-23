@@ -3,6 +3,7 @@ import utils
 import mglobals
 import dice
 
+
 class DiceUI(pygame.sprite.Sprite):
     def __init__(self, number1):
         super(DiceUI, self).__init__()
@@ -22,12 +23,14 @@ class DiceUI(pygame.sprite.Sprite):
     def update(self):
         self.rect.x, self.rect.y = self.x, self.y
 
+
 def init_dice():
     mglobals.DICEOBJ = dice.Dice()
     for number1 in range(1, 7):
         temp = DiceUI(number1)
         mglobals.DICE_DISPLAY.add(temp)
         mglobals.DICE_NUMBER_MAP[number1] = temp
+
 
 class PRINTUI(pygame.sprite.Sprite):
     def __init__(self, message="", color='black', fntsize='small_p', alias=False):
@@ -50,16 +53,15 @@ class PRINTUI(pygame.sprite.Sprite):
     def update(self):
         self.rect.x, self.rect.y = self.x, self.y
 
+
 def init_printui():
-    for player, color in zip ([mglobals.PLAYER_ONE, mglobals.PLAYER_TWO], \
-                              [mglobals.PLAYER_ONE_COLOR, mglobals.PLAYER_TWO_COLOR]):
+    for player, color in zip([mglobals.PLAYER_ONE, mglobals.PLAYER_TWO], \
+                             [mglobals.PLAYER_ONE_COLOR, mglobals.PLAYER_TWO_COLOR]):
         temp_p = PRINTUI(player, color, 'mid', True)
         mglobals.PLAYER_NAME_DISPLAY.add(temp_p)
         mglobals.PLAYER_NAME_SPRITE[player] = temp_p
         temp = PRINTUI()
         temp.image = mglobals.P1_IMG if player == mglobals.PLAYER_ONE \
-                                     else mglobals.P2_IMG
+            else mglobals.P2_IMG
         mglobals.PLAYER_NAME_DISPLAY.add(temp)
         mglobals.CURRENTPLAYER_IMG[player] = temp
-
-

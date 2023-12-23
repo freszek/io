@@ -1,6 +1,10 @@
+import random
+
 import pygame
 
 import mglobals
+from mini_game import MiniGame
+
 
 class PlayerMovement:
     RECT_WIDTH = 65
@@ -9,11 +13,15 @@ class PlayerMovement:
     PIMG_WIDTH = 60
     PIMG_HEIGHT = 40
 
+
     def __init__(self, player_name, player_img, position=0):
         self.position = position
         self.player_name = player_name
         self.player_img = player_img
         self.x, self.y = 720, 730
+        game1 = MiniGame(1, "WaterSafe", 30, 5)
+        game2 = MiniGame(2, "CleanUp", 30, 5)
+        self.game_list = [game1, game2]
 
 
     def advance(self, count):
@@ -35,6 +43,11 @@ class PlayerMovement:
         # elif self.position == 30:
         #     self.position = 10
         #     currentplayer.jail.in_jail = True
+        result = 0
+        if not self.position % 5 or not self.position % 3:
+            while result < 5:
+                result = self.game_list[0].startMinigame()
+
         self.reposition()
         self.render()
 
@@ -45,39 +58,40 @@ class PlayerMovement:
             if self.position in [0, 10]:
                 self.y = mglobals.DISPLAY_H - PlayerMovement.PIMG_HEIGHT - 33
                 self.x = 720 if self.position == 0 \
-                           else 25
+                    else 25
             else:
                 self.y = 33
                 self.x = 720 if self.position == 30 \
-                           else 25
+                    else 25
 
         # If the position corresponds to a vertical rectangle
         elif (self.position > 0 and self.position < 10) or \
-             (self.position > 20 and self.position < 30):
+                (self.position > 20 and self.position < 30):
             if self.position > 0 and self.position < 10:
                 self.y = 730
-                self.x = mglobals.BOARD_WIDTH - PlayerMovement.SQ_HEIGHT_WIDTH \
-                         - PlayerMovement.PIMG_WIDTH  - 3 \
-                         - ((self.position - 1) * PlayerMovement.RECT_WIDTH)
+                self.x = (mglobals.BOARD_WIDTH - PlayerMovement.SQ_HEIGHT_WIDTH
+                          - PlayerMovement.PIMG_WIDTH - 3
+                          - ((self.position - 1) * PlayerMovement.RECT_WIDTH))
             else:
                 self.y = 33
-                self.x = PlayerMovement.SQ_HEIGHT_WIDTH + 3 \
-                         + (((self.position % 10) - 1) * PlayerMovement.RECT_WIDTH)
+                self.x = (PlayerMovement.SQ_HEIGHT_WIDTH + 3
+                          + (((self.position % 10) - 1) * PlayerMovement.RECT_WIDTH))
 
         # If the position corresponds to a horizontal rectangle
         else:
             if self.position > 10 and self.position < 20:
                 self.x = 25
-                self.y = mglobals.DISPLAY_H - PlayerMovement.SQ_HEIGHT_WIDTH \
-                         - PlayerMovement.PIMG_HEIGHT - 12 \
-                         - (((self.position % 10) - 1) * PlayerMovement.RECT_WIDTH)
+                self.y = (mglobals.DISPLAY_H - PlayerMovement.SQ_HEIGHT_WIDTH
+                          - PlayerMovement.PIMG_HEIGHT - 12
+                          - (((self.position % 10) - 1) * PlayerMovement.RECT_WIDTH))
             else:
                 self.x = 720
-                self.y = PlayerMovement.SQ_HEIGHT_WIDTH + 12 \
-                         + (((self.position % 10) - 1) * PlayerMovement.RECT_WIDTH)
+                self.y = (PlayerMovement.SQ_HEIGHT_WIDTH + 12
+                          + (((self.position % 10) - 1) * PlayerMovement.RECT_WIDTH))
 
     def render(self):
         mglobals.GD.blit(self.player_img, (self.x, self.y))
+
 
 class PlayerSelection:
     BOX_THICKNESS = 5
@@ -99,40 +113,39 @@ class PlayerSelection:
             if self.position in [0, 10]:
                 self.y = mglobals.DISPLAY_H - PlayerSelection.SQ_HEIGHT_WIDTH
                 self.x = 0 if self.position == 10 \
-                           else mglobals.BOARD_WIDTH - PlayerSelection.SQ_HEIGHT_WIDTH
+                    else mglobals.BOARD_WIDTH - PlayerSelection.SQ_HEIGHT_WIDTH
             else:
                 self.y = 0
                 self.x = 0 if self.position == 20 \
-                           else mglobals.BOARD_WIDTH - PlayerSelection.SQ_HEIGHT_WIDTH
+                    else mglobals.BOARD_WIDTH - PlayerSelection.SQ_HEIGHT_WIDTH
             self.cw, self.ch = PlayerSelection.SQ_HEIGHT_WIDTH, PlayerSelection.SQ_HEIGHT_WIDTH
 
         # If the position corresponds to a vertical rectangle
         elif (self.position > 0 and self.position < 10) or \
-             (self.position > 20 and self.position < 30):
+                (self.position > 20 and self.position < 30):
             if self.position > 0 and self.position < 10:
                 self.y = (mglobals.DISPLAY_H - PlayerSelection.RECT_HEIGHT)
-                self.x = mglobals.BOARD_WIDTH \
-                         - PlayerSelection.SQ_HEIGHT_WIDTH \
-                         - (PlayerSelection.RECT_WIDTH * self.position)
+                self.x = (mglobals.BOARD_WIDTH
+                          - PlayerSelection.SQ_HEIGHT_WIDTH
+                          - (PlayerSelection.RECT_WIDTH * self.position))
             else:
                 self.y = 0
-                self.x = PlayerSelection.SQ_HEIGHT_WIDTH \
-                         + (PlayerSelection.RECT_WIDTH * ((self.position % 10) - 1))
+                self.x = (PlayerSelection.SQ_HEIGHT_WIDTH
+                          + (PlayerSelection.RECT_WIDTH * ((self.position % 10) - 1)))
             self.cw, self.ch = PlayerSelection.RECT_WIDTH, PlayerSelection.RECT_HEIGHT
 
         # If the position corresponds to a horizontal rectangle
         else:
             if self.position > 10 and self.position < 20:
                 self.x = 0
-                self.y = mglobals.DISPLAY_H \
-                         - PlayerSelection.SQ_HEIGHT_WIDTH \
-                         - (PlayerSelection.RECT_WIDTH * (self.position % 10))
+                self.y = (mglobals.DISPLAY_H
+                          - PlayerSelection.SQ_HEIGHT_WIDTH
+                          - (PlayerSelection.RECT_WIDTH * (self.position % 10)))
             else:
                 self.x = mglobals.BOARD_WIDTH - PlayerSelection.SQ_HEIGHT_WIDTH
-                self.y = PlayerSelection.SQ_HEIGHT_WIDTH \
-                         + (PlayerSelection.RECT_WIDTH * ((self.position % 10) -1))
+                self.y = (PlayerSelection.SQ_HEIGHT_WIDTH
+                          + (PlayerSelection.RECT_WIDTH * ((self.position % 10) - 1)))
             self.ch, self.cw = PlayerSelection.RECT_WIDTH, PlayerSelection.RECT_HEIGHT
-
 
     def advance(self):
         self.position += 1
@@ -160,15 +173,9 @@ class Player:
     def __init__(self, player_name):
         self.player_name = player_name
         self.color = mglobals.PLAYER_ONE_COLOR \
-                            if self.player_name == mglobals.PLAYER_ONE \
-                            else mglobals.PLAYER_TWO_COLOR
+            if self.player_name == mglobals.PLAYER_ONE \
+            else mglobals.PLAYER_TWO_COLOR
         self.ps = PlayerSelection(self.color)
         self.pm = PlayerMovement(self.player_name, mglobals.P1_IMG) \
-                            if self.player_name == mglobals.PLAYER_ONE \
-                            else PlayerMovement(self.player_name, mglobals.P2_IMG)
-
-    def start_minigame(self):
-        pass
-
-    def start_special_event(self):
-        pass
+            if self.player_name == mglobals.PLAYER_ONE \
+            else PlayerMovement(self.player_name, mglobals.P2_IMG)

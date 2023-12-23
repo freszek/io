@@ -1,3 +1,8 @@
+import random
+
+from Minigames.WaterSafe.minigame import WaterSafeGame
+
+
 class MiniGame:
     def __init__(self, minigameID, minigameName, duration, minimalNumberOfPoints):
         self.minigameID = minigameID
@@ -6,7 +11,9 @@ class MiniGame:
         self.minimalNumberOfPoints = minimalNumberOfPoints
 
     def startMinigame(self):
-        pass
-
-    def endMinigame(self):
-        pass
+        game = None
+        if self.minigameName == "WaterSafe":
+            game = WaterSafeGame()
+        elif self.minigameName == "CleanUp":
+            pass
+        return game.run_game()
