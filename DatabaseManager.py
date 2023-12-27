@@ -10,13 +10,19 @@ class DatabaseManager:
         self.cursor.execute("SELECT login "
                             "FROM users "
                             "WHERE id = ?", (player_id,))
-        return self.cursor.fetchone()[0]
+        try:
+            return self.cursor.fetchone()[0]
+        except TypeError:
+            return -1
 
     def get_player_id(self, login):
         self.cursor.execute("SELECT id "
                             "FROM users "
                             "WHERE login = ?", (login,))
-        return self.cursor.fetchone()[0]
+        try:
+            return self.cursor.fetchone()[0]
+        except TypeError:
+            return -1
 
     def get_events(self):
         self.cursor.execute("SELECT * "
@@ -69,7 +75,6 @@ class DatabaseManager:
             achievement_list.append(4)
         if self.event_under_5(player_id):
             achievement_list.append(5)
-        print(self.all_correct(player_id))
         if self.all_correct(player_id):
             achievement_list.append(6)
         levels = ["EASY", "MEDIUM", "HARD"]
@@ -78,8 +83,6 @@ class DatabaseManager:
                 achievement_list.append(7 + i)
         if self.is_legend(player_id):
             achievement_list.append(10)
-        print(achievement_list)
-        print(check)
         if len(check) == 0:
             for achievement in achievement_list:
                 self.cursor.execute("INSERT INTO users_achievements (user_id, achievement_id) "

@@ -1,8 +1,8 @@
 from abc import ABC, ABCMeta, abstractmethod
-from QuizForm import QuizForm
+from QuizWindow import QuizWindow
 
 
 class IEventy(ABC, metaclass=ABCMeta):
     @abstractmethod
     def get_event_form(self):
-        QuizForm()
+        QuizWindow()
