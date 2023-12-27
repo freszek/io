@@ -43,9 +43,9 @@ def game():
 
         font = pygame.font.Font(None, 36)
 
-        quiz_text = font.render("Show Quiz", True, (255, 255, 255))
-        stats_text = font.render("Show Statistics", True, (255, 255, 255))
-        achievements_text = font.render("Show Achievements", True, (255, 255, 255))
+        quiz_text = font.render("Quiz", True, (255, 255, 255))
+        stats_text = font.render("Statystyki", True, (255, 255, 255))
+        achievements_text = font.render("Osiągnięcia", True, (255, 255, 255))
 
         quiz_text_rect = quiz_text.get_rect(center=quiz_button_rect.center)
         stats_text_rect = stats_text.get_rect(center=stats_button_rect.center)
