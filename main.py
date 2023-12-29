@@ -22,16 +22,23 @@ def game():
     achievement_button_rect = pygame.Rect((screen_w - button_width) // 2, (screen_h - button_height) // 2 + 125,
                                           button_width, button_height)
 
+    quiz_clicked = False
+
+    overlay_surface = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
+    overlay_surface.fill((255, 255, 255, 128))
+
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN and not quiz_clicked:
                 if event.button == 1:
                     mouse_x, mouse_y = event.pos
                     if quiz_button_rect.collidepoint(mouse_x, mouse_y):
                         QuizWindow()
+                        quiz_clicked = True
+
                     elif stats_button_rect.collidepoint(mouse_x, mouse_y):
                         StatsWindow()
                     elif achievement_button_rect.collidepoint(mouse_x, mouse_y):
@@ -54,6 +61,9 @@ def game():
         screen.blit(quiz_text, quiz_text_rect.topleft)
         screen.blit(stats_text, stats_text_rect.topleft)
         screen.blit(achievements_text, achievements_text_rect.topleft)
+
+        if quiz_clicked:
+            screen.blit(overlay_surface, quiz_button_rect.topleft)
 
         pygame.display.flip()
         clock.tick(60)

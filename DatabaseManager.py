@@ -77,7 +77,7 @@ class DatabaseManager:
             achievement_list.append(5)
         if self.all_correct(player_id):
             achievement_list.append(6)
-        levels = ["EASY", "MEDIUM", "HARD"]
+        levels = ("EASY", "MEDIUM", "HARD")
         for i, level in enumerate(levels):
             if self.completed_event(player_id, level):
                 achievement_list.append(7 + i)
