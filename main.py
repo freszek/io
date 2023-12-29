@@ -32,10 +32,10 @@ def game():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN and not quiz_clicked:
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     mouse_x, mouse_y = event.pos
-                    if quiz_button_rect.collidepoint(mouse_x, mouse_y):
+                    if quiz_button_rect.collidepoint(mouse_x, mouse_y) and not quiz_clicked:
                         QuizWindow()
                         quiz_clicked = True
 
