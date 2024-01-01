@@ -1,102 +1,28 @@
+import hashlib
 import sqlite3
 from typing import List
-
-from FriendList import User
+from IntegratedGame import User
 
 
 class UserDao:
     def __init__(self, db_path="users.db"):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
-    def get_points(self, user):
-        return []
-    def create_table_friends(self):
+        self.create_table()
+
+    def create_table(self):
         query = '''
-        CREATE TABLE user_friends (
-            user_id INTEGER PRIMARY KEY,
-            friend_1 INTEGER DEFAULT NULL,
-            friend_2 INTEGER DEFAULT NULL,
-            friend_3 INTEGER DEFAULT NULL,
-            friend_4 INTEGER DEFAULT NULL,
-            friend_5 INTEGER DEFAULT NULL,
-            friend_6 INTEGER DEFAULT NULL,
-            friend_7 INTEGER DEFAULT NULL,
-            friend_8 INTEGER DEFAULT NULL,
-            friend_9 INTEGER DEFAULT NULL,
-            friend_10 INTEGER DEFAULT NULL,
-            friend_11 INTEGER DEFAULT NULL,
-            friend_12 INTEGER DEFAULT NULL,
-            FOREIGN KEY (user_id) REFERENCES users(id),
-            FOREIGN KEY (friend_1) REFERENCES users(id),
-            FOREIGN KEY (friend_2) REFERENCES users(id),
-            FOREIGN KEY (friend_3) REFERENCES users(id),
-            FOREIGN KEY (friend_4) REFERENCES users(id),
-            FOREIGN KEY (friend_5) REFERENCES users(id),
-            FOREIGN KEY (friend_6) REFERENCES users(id),
-            FOREIGN KEY (friend_7) REFERENCES users(id),
-            FOREIGN KEY (friend_8) REFERENCES users(id),
-            FOREIGN KEY (friend_9) REFERENCES users(id),
-            FOREIGN KEY (friend_10) REFERENCES users(id),
-            FOREIGN KEY (friend_11) REFERENCES users(id),
-            FOREIGN KEY (friend_12) REFERENCES users(id),
-    
-);
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            login TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL,
+            email TEXT NOT NULL,
+            answer TEXT,
+            question TEXT
+        )
         '''
         self.conn.execute(query)
         self.conn.commit()
-
-    def add_friend(self, user_id, new_friend_id):
-        cursor = self.conn.cursor()
-
-        cursor.execute(
-            "SELECT friend_1, friend_2, friend_3, friend_4, friend_5, friend_6, friend_7, friend_8, friend_9, friend_10, friend_11, friend_12 FROM user_friends WHERE user_id = ?",
-            (user_id,))
-        friends = cursor.fetchone()
-
-        column_to_update = None
-        for i in range(12):
-            if friends[i] is None:
-                column_to_update = f"friend_{i + 1}"
-                break
-
-        if column_to_update:
-            query = f"UPDATE user_friends SET {column_to_update} = ? WHERE user_id = ?"
-            cursor.execute(query, (new_friend_id, user_id))
-            self.conn.commit()
-
-        cursor.close()
-        self.conn.close()
-
-    def delete_friend(self, user_id, friend_id):
-        cursor = self.conn.cursor()
-
-        cursor.execute(
-            "SELECT friend_1, friend_2, friend_3, friend_4, friend_5, friend_6, friend_7, friend_8, friend_9, friend_10, friend_11, friend_12 FROM user_friends WHERE user_id = ?",
-            (user_id,))
-        friends = cursor.fetchone()
-
-        column_to_update = None
-        for i in range(12):
-            if friends[i] == friend_id:
-                column_to_update = f"friend_{i + 1}"
-                break
-
-        if column_to_update:
-            query = f"UPDATE user_friends SET {column_to_update} = NULL WHERE user_id = ?"
-            cursor.execute(query, (user_id))
-            self.conn.commit()
-
-        cursor.close()
-        self.conn.close()
-
-    def get_name(self, user):
-        return ""
-
-    def add_points(self, value):
-        pass
-
-    def get_friend_list(self, user):
-        return []
 
     def get_all(self) -> List[User]:
         query = 'SELECT * FROM users'
@@ -105,5 +31,58 @@ class UserDao:
 
         users = []
         for user in result:
-            users.append(User(user[0], user[1]))
+            users.append(User(user[0], user[1], user[2], user[3], user[4], user[5]))
         return users
+
+    def get_by_id(self, user_id: int) -> User:
+        query = 'SELECT * FROM users WHERE id = ?'
+        cursor = self.conn.execute(query, (user_id,))
+        result = cursor.fetchone()
+        try:
+            return User(result[0], result[1], result[2], result[3], result[4], result[5])
+        except:
+            print("User not found")
+
+    def get_by_login(self, login) -> User:
+        query = 'SELECT * FROM users WHERE login = ?'
+        cursor = self.conn.execute(query, (login,))
+        result = cursor.fetchone()
+        try:
+            return User(result[0], result[1], result[2], result[3], result[4], result[5])
+        except:
+            print("User not found")
+
+    def create_user(self, user: User) -> bool:
+        query = 'INSERT INTO users (login, password, email, answer, question) VALUES (?, ?, ?, ?, ?)'
+        try:
+            self.conn.execute(query,
+                              (user.login, self.hash_password(user.password), user.email, user.answer, user.question))
+            self.conn.commit()
+            return True
+        except:
+            return False
+
+    def update_user(self, user: User, password: str) -> bool:
+        hashed_password = self.hash_password(password)
+        query = 'UPDATE users SET password = ? WHERE id = ?'
+        try:
+            self.conn.execute(query, (hashed_password, user.id))
+            self.conn.commit()
+            return True
+        except:
+            return False
+
+    def delete_user(self, user: User) -> bool:
+        query = 'DELETE FROM users WHERE id = ?'
+        try:
+            self.conn.execute(query, (user.id,))
+            self.conn.commit()
+            return True
+        except:
+            return False
+
+    def hash_password(self, password):
+        return hashlib.sha256(password.encode()).hexdigest()
+
+    def close(self):
+        self.conn.close()
