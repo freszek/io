@@ -78,10 +78,10 @@ class FriendList:
         if self.visible:
             self.input_box.draw(screen)
 
-            filtered_users = [user for user in self.user_list if self.input_box.get_text().lower() in user.name.lower()]
+            filtered_users = [user for user in self.user_list if self.input_box.get_text().lower() in user.login.lower()]
             for i, user in enumerate(filtered_users):
                 user_y = self.rect.y + 40 + i * 30
-                text_surface = self.font.render(user.name, True, (106, 168, 79))
+                text_surface = self.font.render(user.login, True, (106, 168, 79))
                 user_block_width = self.rect.width
                 pygame.draw.rect(screen, (200, 200, 200), (self.rect.x + 10, user_y, user_block_width, 25), 1)  # Obramówka
                 screen.blit(text_surface, (self.rect.x + 15, user_y + 5))
