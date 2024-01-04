@@ -39,7 +39,7 @@ def login():
 
     login_button_log = ctk.CTkButton(login_window, text="Login",
                                      command=lambda: log_in(login_field_log.get(), password_field_log.get(),
-                                                            answer_field_log.get()))
+                                                            answer_field_log.get()),fg_color=("#60A060"), hover_color=("#006400"))
 
     login_log.grid(row=0, column=0, padx=10, pady=5, sticky="e")
     password_log.grid(row=1, column=0, padx=10, pady=5, sticky="e")
@@ -77,8 +77,8 @@ password_field = ctk.CTkEntry(root, show="*")
 questions_field = ctk.CTkComboBox(root, values=["What is your pet's name?", "Where you were born?", "Favourite book?"])
 answer_field = ctk.CTkEntry(root)
 
-register_button = ctk.CTkButton(root, text="Register", command=register)
-login_button = ctk.CTkButton(root, text="Already have an account? Log in", command=login)
+register_button = ctk.CTkButton(root, text="Register", command=register, fg_color=("#60A060"), hover_color=("#006400"))
+login_button = ctk.CTkButton(root, text="Already have an account? Log in", command=login, fg_color=("#60A060"), hover_color=("#006400"))
 
 email_string.grid(row=0, column=0, padx=10, pady=5, sticky="e")
 login_string.grid(row=1, column=0, padx=10, pady=5, sticky="e")
