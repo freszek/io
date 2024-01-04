@@ -43,11 +43,6 @@ class PlayerMovement:
         # elif self.position == 30:
         #     self.position = 10
         #     currentplayer.jail.in_jail = True
-        result = 0
-        if not self.position % 5 or not self.position % 3:
-            while result < 5:
-                result = self.game_list[0].startMinigame()
-
         self.reposition()
         self.render()
 
