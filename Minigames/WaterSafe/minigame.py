@@ -108,7 +108,7 @@ class NPC(pygame.sprite.Sprite):
 
 
 class WaterSafeGame:
-    def __init__(self, width=800, height=600, duration=30):
+    def __init__(self, width=1200, height=800, duration=30):
         self.WIDTH = width
         self.HEIGHT = height
         self.PLAYER_SIZE = int(80 * min(self.WIDTH, self.HEIGHT) / 800)
@@ -272,7 +272,6 @@ class WaterSafeGame:
             if elapsed_time >= self.duration or self.WATER_COUNTER <= 0:
                 self.game_running = False
                 result = self.end_game()
-                pygame.quit()
                 return result
 
             self.clock.tick(self.FPS)

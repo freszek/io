@@ -1,5 +1,4 @@
-import random
-
+# import gierka
 from Minigames.WaterSafe.minigame import WaterSafeGame
 
 
@@ -14,6 +13,6 @@ class MiniGame:
         game = None
         if self.minigameName == "WaterSafe":
             game = WaterSafeGame()
-        elif self.minigameName == "CleanUp":
-            pass
+        # elif self.minigameName == "CleanUp":
+            # game = gierka.generate_game()
         return game.run_game()
