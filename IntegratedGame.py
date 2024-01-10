@@ -99,6 +99,26 @@ class UserDao:
             return True
         except:
             return False
+        
+    def get_friend_list(self, user_id):
+        cursor = self.conn.cursor()
+        cursor.execute('''
+                SELECT friend_id FROM user_friends WHERE user_id = ?
+            ''', (user_id,))  # Zauważ użycie przecinka, aby utworzyć krotkę jednoelementową
+    
+        friends = cursor.fetchall()
+    
+        friend_ids = [friend[0] for friend in friends]
+        return friend_ids
+    
+    def delete_friend(self, user_id, friend_id):
+        cursor = self.conn.cursor()
+    
+        query = "DELETE FROM user_friends WHERE user_id = ? AND friend_id = ?"
+        cursor.execute(query, (user_id, friend_id))
+        self.conn.commit()
+    
+        cursor.close()
 
     def hash_password(self, password):
         return hashlib.sha256(password.encode()).hexdigest()
@@ -211,9 +231,9 @@ def show_login_form():
     login_form_answer_string.grid(row=2, column=0)
     login_form_answer_field.grid(row=2, column=1)
     login_form_login_button.grid(row=3, column=0)
-    
+
 def main_game_loop():
-    
+
     pygame.init()
 
     width, height = 800, 600
@@ -228,7 +248,7 @@ def main_game_loop():
     light_green = (96, 160, 96)
 
     font = pygame.font.SysFont("Yu Gothic UI", 30, bold=True)
-    
+
     def play_click_sound():
         pygame.mixer.music.load("click_sound.wav")
         pygame.mixer.music.play(0)
@@ -249,7 +269,7 @@ def main_game_loop():
         if rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
             play_click_sound()
             command()
-    
+
 
     def start_game():
         print("hello")
@@ -269,13 +289,17 @@ def main_game_loop():
     logo_image = pygame.transform.scale(logo_image, (250, 250))
     logo_rect = logo_image.get_rect(center=(width // 2, height // 5.5))
     
-    example_users = [User(i, f"User{i}", "password{i}", "email{i}", "answer{i}", "question{i}") for i in range(12)]
-    
+
+    example_users = session_controller.user_dao.get_friend_list(session_controller.session_user.id)
+    users_list = []
+    for i in example_users:
+        users_list.append(session_controller.user_dao.get_by_id(i))
+
     FRIENDS_BUTTON_X = 10
     FRIENDS_BUTTON_Y = 50
     toggle_button = Button(FRIENDS_BUTTON_X, FRIENDS_BUTTON_Y, 140, 50, "Znajomi")
-    friend_list = FriendList(FRIENDS_BUTTON_X, FRIENDS_BUTTON_Y + 50, 140, 500, example_users)
-    
+    friend_list = FriendList(FRIENDS_BUTTON_X - 10, FRIENDS_BUTTON_Y + 50, 140, 500, users_list, session_controller.session_user.id)
+
     def handle_events(toggle_button, friend_list):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -309,7 +333,7 @@ def main_game_loop():
 def log_in_callback():
     # Wywołanie metody logowania
     session_controller.log_in(login_form_login_field.get(), login_form_password_field.get(), login_form_answer_field.get())
-    
+
     if session_controller.check_if_logged():
         root.destroy()  # Zamknij okno Tkintera
         main_game_loop()  # Uruchom pętlę gry w Pygame
@@ -347,10 +371,10 @@ login_form_login_field = ctk.CTkEntry(root)
 login_form_password_field = ctk.CTkEntry(root, show="*")
 login_form_answer_field = ctk.CTkEntry(root)
 
-register_button = ctk.CTkButton(root, text="Register", command=lambda: session_controller.register(login_field.get(), password_field.get(), email_field.get(), answer_field.get(), questions_field.get()))
-login_button = ctk.CTkButton(root, text="Already have an account? Log in", command=show_login_form)
+register_button = ctk.CTkButton(root, text="Register", command=lambda: session_controller.register(login_field.get(), password_field.get(), email_field.get(), answer_field.get(), questions_field.get()), fg_color=("#60A060"), hover_color=("#006400"))
+login_button = ctk.CTkButton(root, text="Already have an account? Log in", command=show_login_form, fg_color=("#60A060"), hover_color=("#006400"))
 
-login_form_login_button = ctk.CTkButton(root, text="Log in", command=log_in_callback)
+login_form_login_button = ctk.CTkButton(root, text="Log in", command=log_in_callback,fg_color=("#60A060"), hover_color=("#006400"))
 
 email_string.grid(row=0, column=0, padx=10, pady=5, sticky="e")
 login_string.grid(row=1, column=0, padx=10, pady=5, sticky="e")
@@ -372,7 +396,4 @@ root.mainloop()
 
 if session_controller.check_if_logged():
     main_game_loop()
-
-
-
 
