@@ -4,6 +4,7 @@ import pygame
 
 import mglobals
 from mini_game import MiniGame
+from mainEvents import game
 
 
 class PlayerMovement:
@@ -27,6 +28,7 @@ class PlayerMovement:
     def advance(self, count):
         currentplayer = mglobals.PLAYER_OBJ[self.player_name]
         prev_pos = self.position
+        old_position = self.position
         self.position = (self.position + count) % mglobals.BOARD_SQUARES
         # if self.position == 0 or (prev_pos > self.position and \
         #                           not currentplayer.jail.in_jail):
@@ -47,11 +49,16 @@ class PlayerMovement:
         self.render()
 
         result = 0
-        if not self.position % 5 or not self.position % 3:
-            while result < 5:
-                result = self.game_list[0].startMinigame()
+# =============================================================================
+#         if not self.position % 5 or not self.position % 3:
+#             while result < 5:
+#                 result = self.game_list[0].startMinigame()
+# =============================================================================
 
-
+        if old_position + count >= mglobals.BOARD_SQUARES:
+            game()
+                 
+                 
     def reposition(self):
         # If the position corresponds to a square
         if self.position % 10 == 0:
