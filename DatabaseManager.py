@@ -15,6 +15,10 @@ class DatabaseManager:
         except TypeError:
             return -1
 
+    def get_all_player_names(self):
+        self.cursor.execute("SELECT login FROM users WHERE isLogged = 1")
+        return self.cursor.fetchall()
+
     def get_player_id(self, login):
         self.cursor.execute("SELECT id "
                             "FROM users "

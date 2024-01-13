@@ -13,18 +13,21 @@ class AchievementsWindow:
         self.root.resizable(False, True)
         self.root.configure(background="lightblue")
 
-        self.player_name_entry = None
+        self.player_name_combobox = None
 
         self.create_widgets()
 
         self.root.mainloop()
 
     def create_widgets(self):
-        player_name_label = tk.Label(self.root, text="Nazwa gracza:", font=("Arial", 12, "bold"), bg="lightblue")
+        player_name_label = tk.Label(self.root, text="Wybierz gracza:", font=("Arial", 12, "bold"), bg="lightblue")
         player_name_label.pack(pady=10)
 
-        self.player_name_entry = tk.Entry(self.root, font=("Arial", 12), width=15, justify="center", bg="lightgreen")
-        self.player_name_entry.pack(pady=10)
+        player_names = db.get_all_player_names()
+        self.player_name_combobox = ttk.Combobox(self.root, values=player_names, font=("Arial", 12), width=15,
+                                                 justify="center", state="readonly", background="lightgreen")
+        self.player_name_combobox.set("Wybierz gracza")
+        self.player_name_combobox.pack(pady=10)
 
         search_button = tk.Button(self.root, text="Szukaj", command=self.search_achievements, width=15, height=1,
                                   font=("Arial", 12, "bold"), bg="darkgreen", fg="white")
@@ -37,14 +40,15 @@ class AchievementsWindow:
         self.achieve_frame.pack(pady=10)
 
     def search_achievements(self):
-        player_name = self.player_name_entry.get()
-        player_id = db.get_player_id(player_name)
-        if player_id != -1:
-            self.show_achievements(player_id)
-        elif len(player_name) == 0:
-            messagebox.showwarning("Błąd!", "Wpisz nazwę gracza!")
+        player_name = self.player_name_combobox.get()
+        if player_name:
+            player_id = db.get_player_id(player_name)
+            if player_id != -1:
+                self.show_achievements(player_id)
+            else:
+                messagebox.showwarning("Błąd!", "Nie ma takiego gracza!")
         else:
-            messagebox.showwarning("Błąd!", "Nie ma takiego gracza!")
+            messagebox.showwarning("Błąd!", "Wybierz gracza!")
 
     def show_achievements(self, player_id):
         self.player_achievements = db.get_player_achievements(player_id)
