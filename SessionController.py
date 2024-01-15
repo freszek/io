@@ -11,7 +11,7 @@ class SessionController:
             print("Uzytkownik o tym loginie juz istnieje!")
             return
 
-        user = User(0, login, password, email, question, answer)
+        user = User(0, login, password, email, answer, question)
         self.session_user = user
         self.user_dao.create_user(user)
         print(f"ZAREJESTROWANY {login}")

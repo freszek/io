@@ -19,7 +19,7 @@ def register():
         print("Haslo nie spelnia wymagan (8 znakow)")
         return
 
-    session.register(login, password, email, question, answer)
+    session.register(login, password, email, answer, question)
 
 
 def login():
