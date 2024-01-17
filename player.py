@@ -3,6 +3,7 @@ import random
 import pygame
 
 import mglobals
+import utils
 from mini_game import MiniGame
 from mainEvents import game
 
@@ -57,7 +58,8 @@ class PlayerMovement:
             while result < 5:
                 result = self.game_list[1].startMinigame()
 # =============================================================================
-
+        utils.draw_board()
+        self.render()
         if old_position + count >= mglobals.BOARD_SQUARES:
             game()
                  

@@ -163,18 +163,18 @@ import sys
 import random
 
 class Container(pygame.sprite.Sprite):
-    def __init__(self, color, x, y):
+    def __init__(self, color, x, y, CONTAINER_WIDTH, CONTAINER_HEIGHT):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((Game.CONTAINER_WIDTH, Game.CONTAINER_HEIGHT))
+        self.image = pygame.Surface((CONTAINER_WIDTH, CONTAINER_HEIGHT))
         self.image.fill(color)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
 
 class Trash(pygame.sprite.Sprite):
-    def __init__(self, color, x, y):
+    def __init__(self, color, x, y, TRASH_WIDTH, TRASH_HEIGHT):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((Game.TRASH_WIDTH, Game.TRASH_HEIGHT))
+        self.image = pygame.Surface((TRASH_WIDTH, TRASH_HEIGHT))
         self.image.fill(color)
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -184,19 +184,19 @@ class Trash(pygame.sprite.Sprite):
         self.dragging = False
 
 class Game:
-    WIDTH, HEIGHT = 800, 600
-    FPS = 60
-    WHITE = (255, 255, 255)
-    CONTAINER_COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 150, 0), (255, 0, 150)]
-    TRASH_COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 150, 0), (255, 0, 150)]
-    CONTAINER_WIDTH = 100
-    CONTAINER_HEIGHT = 100
-    TRASH_WIDTH = 30
-    TRASH_HEIGHT = 30
-
-    def __init__(self):
+    def __init__(self, width=1200, height=800, duration=30):
         pygame.init()
-        self.screen = pygame.display.set_mode((Game.WIDTH, Game.HEIGHT))
+        self.WIDTH = width
+        self.HEIGHT = height
+        self.FPS = 60
+        self.WHITE = (255, 255, 255)
+        self.CONTAINER_COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 150, 0), (255, 0, 150)]
+        self.TRASH_COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 150, 0), (255, 0, 150)]
+        self.CONTAINER_WIDTH = 100
+        self.CONTAINER_HEIGHT = 100
+        self.TRASH_WIDTH = 30
+        self.TRASH_HEIGHT = 30
+        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Sortowanie śmieci")
         self.containers_group = pygame.sprite.Group()
         self.trash_group = pygame.sprite.Group()
@@ -212,18 +212,18 @@ class Game:
         self.trash_group.empty()
 
         for i in range(5):
-            container = Container(Game.CONTAINER_COLORS[i], i * (Game.WIDTH // 5), Game.HEIGHT - Game.CONTAINER_HEIGHT)
+            container = Container(self.CONTAINER_COLORS[i], i * (self.WIDTH // 5), self.HEIGHT - self.CONTAINER_HEIGHT, self.CONTAINER_WIDTH, self.CONTAINER_HEIGHT)
             self.containers_group.add(container)
 
         for i in range(4):
-            for color in Game.TRASH_COLORS:
-                trash = Trash(color, random.randint(0, Game.WIDTH - Game.TRASH_WIDTH),
-                              random.randint(0, Game.HEIGHT - Game.CONTAINER_HEIGHT - Game.TRASH_HEIGHT - 5))
+            for color in self.TRASH_COLORS:
+                trash = Trash(color, random.randint(0, self.WIDTH - self.TRASH_WIDTH),
+                              random.randint(0, self.HEIGHT - self.CONTAINER_HEIGHT - self.TRASH_HEIGHT - 5), self.TRASH_WIDTH, self.TRASH_HEIGHT)
                 self.trash_group.add(trash)
 
     def show_menu(self):
         title_text = self.font.render("Green game", True, (0, 0, 0))
-        start_button = pygame.Rect(Game.WIDTH // 2 - 100, Game.HEIGHT // 2 - 50, 200, 50)
+        start_button = pygame.Rect(self.WIDTH // 2 - 100, self.HEIGHT // 2 - 50, 200, 50)
 
         while True:
             for event in pygame.event.get():
@@ -234,14 +234,14 @@ class Game:
                     if event.button == 1 and start_button.collidepoint(event.pos):
                         return True
 
-            self.screen.fill(Game.WHITE)
+            self.screen.fill(self.WHITE)
             pygame.draw.rect(self.screen, (0, 255, 0), start_button)
-            self.screen.blit(title_text, (Game.WIDTH // 2 - 100, Game.HEIGHT // 2 - 100))
+            self.screen.blit(title_text, (self.WIDTH // 2 - 100, self.HEIGHT // 2 - 100))
             start_text = self.font.render("Start", True, (0, 0, 0))
-            self.screen.blit(start_text, (Game.WIDTH // 2 - 60, Game.HEIGHT // 2 - 40))
+            self.screen.blit(start_text, (self.WIDTH // 2 - 60, self.HEIGHT // 2 - 40))
 
             pygame.display.flip()
-            pygame.time.Clock().tick(Game.FPS)
+            pygame.time.Clock().tick(self.FPS)
 
     def show_menu_and_start_game(self):
         if not self.show_menu():
@@ -286,7 +286,7 @@ class Game:
                     trash.rect.x = pygame.mouse.get_pos()[0] - trash.offset_x
                     trash.rect.y = pygame.mouse.get_pos()[1] - trash.offset_y
 
-            self.screen.fill(Game.WHITE)
+            self.screen.fill(self.WHITE)
             self.containers_group.draw(self.screen)
             self.trash_group.draw(self.screen)
 
@@ -296,12 +296,12 @@ class Game:
 
                 congratulations_text = self.font.render(f"Gratulacje! Twój czas to: {self.end_time // 1000} s",
                                                         True, (0, 0, 0))
-                self.screen.blit(congratulations_text, (Game.WIDTH // 2 - 200, Game.HEIGHT // 2 - 30))
+                self.screen.blit(congratulations_text, (self.WIDTH // 2 - 200, self.HEIGHT // 2 - 30))
 
-                return_to_menu_button = pygame.Rect(Game.WIDTH // 2 - 100, Game.HEIGHT // 2 + 50, 200, 50)
+                return_to_menu_button = pygame.Rect(self.WIDTH // 2 - 100, self.HEIGHT // 2 + 50, 200, 50)
                 pygame.draw.rect(self.screen, (0, 255, 0), return_to_menu_button)
                 return_to_menu_text = self.font.render("Powrót do menu głównego", True, (0, 0, 0))
-                self.screen.blit(return_to_menu_text, (Game.WIDTH // 2 - 150, Game.HEIGHT // 2 + 65))
+                self.screen.blit(return_to_menu_text, (self.WIDTH // 2 - 150, self.HEIGHT // 2 + 65))
 
                 if pygame.mouse.get_pressed()[0] and return_to_menu_button.collidepoint(pygame.mouse.get_pos()):
                     # self.game_completed = False
@@ -312,4 +312,4 @@ class Game:
                     return result
 
             pygame.display.flip()
-            pygame.time.Clock().tick(Game.FPS)
+            pygame.time.Clock().tick(self.FPS)
