@@ -1,4 +1,4 @@
-# import gierka
+from Minigames.SortTrash.gierka import Game
 from Minigames.WaterSafe.minigame import WaterSafeGame
 
 
@@ -13,6 +13,6 @@ class MiniGame:
         game = None
         if self.minigameName == "WaterSafe":
             game = WaterSafeGame()
-        # elif self.minigameName == "CleanUp":
-            # game = gierka.generate_game()
+        elif self.minigameName == "CleanUp":
+            game = Game()
         return game.run_game()

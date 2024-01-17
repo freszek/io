@@ -50,9 +50,12 @@ class PlayerMovement:
 
         result = 0
 # =============================================================================
-#         if not self.position % 5 or not self.position % 3:
-#             while result < 5:
-#                 result = self.game_list[0].startMinigame()
+        if not self.position % 5 or not self.position % 3:
+            while result < 5:
+                result = self.game_list[0].startMinigame()
+        elif not self.position % 7 or not self.position % 2:
+            while result < 5:
+                result = self.game_list[1].startMinigame()
 # =============================================================================
 
         if old_position + count >= mglobals.BOARD_SQUARES:

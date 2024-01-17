@@ -2,8 +2,6 @@ import pygame
 import sys
 import random
 
-pygame.init()
-
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, width, height):
@@ -114,16 +112,14 @@ class WaterSafeGame:
         self.PLAYER_SIZE = int(80 * min(self.WIDTH, self.HEIGHT) / 800)
         self.TAP_SIZE = int(80 * min(self.WIDTH, self.HEIGHT) / 800)
         self.FPS = 60
-        self.WATER_COUNTER = 15
+        self.WATER_COUNTER = 13
         self.NPC_SIZE = int(50 * min(self.WIDTH, self.HEIGHT) / 800)
         self.WHITE = (255, 255, 255)
+        self.BLACK = (0, 0, 0)
         self.duration = duration
         self.game_running = False
         self.start_button_rect = pygame.Rect(self.WIDTH // 3, self.HEIGHT // 2, int(200 * min(self.WIDTH, self.HEIGHT) / 800), int(50 * min(self.WIDTH, self.HEIGHT) / 800))
         self.start_button_color = (0, 255, 0)
-
-        pygame.init()
-
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.DOUBLEBUF | pygame.RESIZABLE)
         self.clock = pygame.time.Clock()
 
@@ -136,7 +132,11 @@ class WaterSafeGame:
             "Twoim zadaniem jest oszczędzanie wody, zakręcając krany.",
             "Kliknij lewym przyciskiem myszy na kran, aby go zakręcić.",
             "Możesz również kliknąć w inne miejsce, aby się przemieszczać.",
-            "Masz 30 sekund na ukończenie gry. Oszczędzaj wodę!",
+            "Masz 30 sekund na ukończenie gry. ",
+            "Oszczędzanie wody to klucz do zrównoważonego rozwoju i ochrony środowiska. ",
+            "Właściwe gospodarowanie wodą pomaga nie tylko środowisku, ",
+            "ale także zmniejsza koszty i wspiera globalne wysiłki dotyczące dostępu do czystej wody.",
+            "Oszczędzaj wodę!",
             "Kliknij dowolny klawisz lub lewy przycisk myszy, aby rozpocząć."
         ]
 
@@ -190,6 +190,8 @@ class WaterSafeGame:
         result_text1 = font.render("Koniec gry!", True, self.WHITE)
         result_text2 = font.render(f"Pozostała woda: {self.WATER_COUNTER:.1f} litrów", True, self.WHITE)
         result = self.WATER_COUNTER * 10
+        if result > 100:
+            result = 100
         result_text3 = font.render(f"Twój wynik: {result:.0f} punkty/ów", True, self.WHITE)
         self.screen.blit(result_text1, (self.WIDTH // 3, self.HEIGHT // 4))
         self.screen.blit(result_text2, (self.WIDTH // 8, self.HEIGHT // 3))
@@ -272,6 +274,7 @@ class WaterSafeGame:
             if elapsed_time >= self.duration or self.WATER_COUNTER <= 0:
                 self.game_running = False
                 result = self.end_game()
+                self.screen.fill(self.WHITE)
                 return result
 
             self.clock.tick(self.FPS)
