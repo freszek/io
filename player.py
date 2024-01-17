@@ -23,7 +23,14 @@ class PlayerMovement:
         self.x, self.y = 720, 730
         game1 = MiniGame(1, "WaterSafe", 30, 5)
         game2 = MiniGame(2, "CleanUp", 30, 5)
-        self.game_list = [game1, game2]
+        game3 = MiniGame(3, "EkoSnake", 30, 5)
+        game4 = MiniGame(4, "Snake", 30, 5)
+        self.game_list = [game1, game2, game3, game4]
+
+
+    def choose_mini_game(self):
+        random_number = random.randint(3, 3)
+        return self.game_list[random_number]
 
 
     def advance(self, count):
@@ -51,12 +58,9 @@ class PlayerMovement:
 
         result = 0
 # =============================================================================
-        if not self.position % 5 or not self.position % 3:
+        if self.position != 0:
             while result < 5:
-                result = self.game_list[0].startMinigame()
-        elif not self.position % 7 or not self.position % 2:
-            while result < 5:
-                result = self.game_list[1].startMinigame()
+                result = self.choose_mini_game().startMinigame()
 # =============================================================================
         utils.draw_board()
         self.render()

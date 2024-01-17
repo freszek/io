@@ -1,5 +1,7 @@
 from Minigames.SortTrash.gierka import Game
 from Minigames.WaterSafe.minigame import WaterSafeGame
+from Minigames.BioFoodGame.MinigameBioFood import EkologicznySnake
+from Minigames.SnakeMinigame.SnakeGame import SnakeGame
 
 
 class MiniGame:
@@ -15,4 +17,8 @@ class MiniGame:
             game = WaterSafeGame()
         elif self.minigameName == "CleanUp":
             game = Game()
+        elif self.minigameName == "EkoSnake":
+            game = EkologicznySnake()
+        elif self.minigameName == "Snake":
+            game = SnakeGame()
         return game.run_game()
