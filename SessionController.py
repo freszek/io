@@ -55,5 +55,14 @@ class SessionController:
         if user:
             user.is_logged = False
 
+    def delete_user(self, password: str):
+        if self.check_password(self.session_user.login, password):
+            self.user_dao.delete_user(self.session_user)
+            self.log_out(self.session_user.login)
+
+    def change_password(self, current_password: str, new_password: str):
+        if self.check_password(self.session_user.login, current_password):
+            self.user_dao.update_user(self.session_user, new_password)
+
     def close(self):
         self.user_dao.close()
