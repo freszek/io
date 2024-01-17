@@ -4,7 +4,6 @@ import pygame
 import random
 import sys
 
-
 class Tire:
     def __init__(self, game):
         self.game = game
@@ -384,6 +383,7 @@ class Board:
 
     def get_score(self):
         return self.points
+
 
 
 if __name__ == "__main__":
