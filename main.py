@@ -17,7 +17,7 @@ def register_in(email, login, password, answer, question):
     if session.check_login(login):
         messagebox.showwarning(title="Error", message="User exists. Please log in.")
     session.register(login, password, email, answer, question)
-    messagebox.showwarning(title="Notification", message="User created.")
+    messagebox.showinfo(title="Notification", message="User created.")
 
 def register(frame):
     frame.destroy()
