@@ -1,101 +1,183 @@
 import tkinter as tk
 import customtkinter as ctk
-from tkinter import simpledialog
+from tkinter import simpledialog, messagebox
 from SessionController import SessionController
+from PIL import Image, ImageTk
 
 
-def register():
-    email = email_field.get()
-    login = login_field.get()
-    password = password_field.get()
-    question = questions_field.get()
-    answer = answer_field.get()
-
+def register_in(email, login, password, answer, question):
+    global session
     if "" in (email, login, password, question, answer):
-        print("Brak wszystkich danych")
+        messagebox.showwarning(title="Error", message="All data is missing.")
         return
 
     if len(password) < 8:
-        print("Haslo nie spelnia wymagan (8 znakow)")
+        messagebox.showwarning(title="Error", message="Password is too weak(8 characters).")
         return
-
+    if session.check_login(login):
+        messagebox.showwarning(title="Error", message="User exists. Please log in.")
     session.register(login, password, email, answer, question)
+    messagebox.showwarning(title="Notification", message="User created.")
 
+def register(frame):
+    frame.destroy()
+    temp = tk.Tk()
+    temp.title("GreenGame")
+    temp.resizable(False, False)
+    temp.geometry("800x600+560+240")
 
-def login():
-    login_window = simpledialog.Toplevel(root)
-    login_window.title("GreenGame")
+    image = Image.open("background.jpg")
+    background_image = ImageTk.PhotoImage(image)
 
-    login_log = ctk.CTkLabel(login_window, text="Login:", fg_color=("white", "gray75"), corner_radius=8,
-                             text_color="black", width=150)
-    password_log = ctk.CTkLabel(login_window, text="Password:", fg_color=("white", "gray75"), corner_radius=8,
-                                text_color="black", width=150)
-    answer_log = ctk.CTkLabel(login_window, text="Answer:", fg_color=("white", "gray75"), corner_radius=8,
-                              text_color="black", width=150)
+    background_label = tk.Label(temp, image=background_image)
+    background_label.place(relwidth=1, relheight=1)
 
-    login_field_log = ctk.CTkEntry(login_window)
-    password_field_log = ctk.CTkEntry(login_window, show="*")
-    answer_field_log = ctk.CTkEntry(login_window)
+    email_string = ctk.CTkLabel(temp, text="Email:", fg_color=("white", "gray75"), text_color="black",
+                                width=150)
+    login_string = ctk.CTkLabel(temp, text="Login:", fg_color=("white", "gray75"), text_color="black",
+                                width=150)
+    password_string = ctk.CTkLabel(temp, text="Password:", fg_color=("white", "gray75"),
+                                   text_color="black", width=150)
+    question_string = ctk.CTkLabel(temp, text="Question:", fg_color=("white", "gray75"),
+                                   text_color="black", width=150)
+    answer_string = ctk.CTkLabel(temp, text="Answer:", fg_color=("white", "gray75"),
+                                 text_color="black",
+                                 width=150)
 
-    login_button_log = ctk.CTkButton(login_window, text="Login",
-                                     command=lambda: log_in(login_field_log.get(), password_field_log.get(),
-                                                            answer_field_log.get()),fg_color=("#60A060"), hover_color=("#006400"))
+    email_field = ctk.CTkEntry(temp,corner_radius=0,width=150)
+    login_field = ctk.CTkEntry(temp,corner_radius=0,width=150)
+    password_field = ctk.CTkEntry(temp, show="*",corner_radius=0,width=150)
+    questions_field = ctk.CTkComboBox(temp,
+                                      values=["What is your pet's name?", "Where you were born?", "Favourite book?"],corner_radius=0,width=150)
+    answer_field = ctk.CTkEntry(temp,corner_radius=0,width=150)
 
-    login_log.grid(row=0, column=0, padx=10, pady=5, sticky="e")
-    password_log.grid(row=1, column=0, padx=10, pady=5, sticky="e")
-    answer_log.grid(row=2, column=0, padx=10, pady=5, sticky="e")
+    register_button = ctk.CTkButton(temp, text="Register", command=lambda: register_in(email_field.get(), login_field.get(),
+                                                        password_field.get(), answer_field.get(), questions_field.get()), fg_color=("#60A060"),
+                                    hover_color=("#006400"),corner_radius=0,width=150)
+    back_button = ctk.CTkButton(temp, text="Back to login",
+                                    command=lambda: main_window(temp), fg_color=("#60A060"),
+                                    hover_color=("#006400"), corner_radius=0,width=150)
 
-    login_field_log.grid(row=0, column=1, padx=10, pady=5)
-    password_field_log.grid(row=1, column=1, padx=10, pady=5)
-    answer_field_log.grid(row=2, column=1, padx=10, pady=5)
+    email_string.place(x=240,y=50)
+    login_string.place(x=240,y=100)
+    password_string.place(x=240,y=150)
+    question_string.place(x=240,y=200)
+    answer_string.place(x=240,y=250)
 
-    login_button_log.grid(row=3, column=0, pady=10, columnspan=3)
+    email_field.place(x=410, y=50)
+    login_field.place(x=410, y=100)
+    password_field.place(x=410, y=150)
+    questions_field.place(x=410, y=200)
+    answer_field.place(x=410, y=250)
+
+    register_button.place(x=240, y=300)
+
+    back_button.place(x=410, y=300)
+
+    temp.mainloop()
 
 
 def log_in(login, password, answer):
+    global session
+    if session.counter >= 5:
+        messagebox.showwarning(title="Error", message="You are blocked.")
+    if session.counter < 5 and (login == "" or password == ""):
+        messagebox.showwarning(title="Error", message="Enter credentials.")
     session.log_in(login, password, answer)
 
+def answer_log_in(login, password, answer):
+    global session
+    if login == "" or answer == "":
+        messagebox.showwarning(title="Error", message="Enter credentials.")
+    session.log_in(login, password, answer)
 
-root = tk.Tk()
-root.title("GreenGame")
-root.resizable(False, False)
+def answer_login(frame):
+    frame.destroy()
+    temp = tk.Tk()
+    temp.title("GreenGame")
+    temp.resizable(False, False)
+    temp.geometry("800x600+560+240")
 
-email_string = ctk.CTkLabel(root, text="Email:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
-                            width=150)
-login_string = ctk.CTkLabel(root, text="Login:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
-                            width=150)
-password_string = ctk.CTkLabel(root, text="Password:", fg_color=("white", "gray75"), corner_radius=8,
-                               text_color="black", width=150)
-question_string = ctk.CTkLabel(root, text="Question:", fg_color=("white", "gray75"), corner_radius=8,
-                               text_color="black", width=150)
-answer_string = ctk.CTkLabel(root, text="Answer:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
-                             width=150)
+    image = Image.open("background.jpg")
+    background_image = ImageTk.PhotoImage(image)
 
-email_field = ctk.CTkEntry(root)
-login_field = ctk.CTkEntry(root)
-password_field = ctk.CTkEntry(root, show="*")
-questions_field = ctk.CTkComboBox(root, values=["What is your pet's name?", "Where you were born?", "Favourite book?"])
-answer_field = ctk.CTkEntry(root)
+    background_label = tk.Label(temp, image=background_image)
+    background_label.place(relwidth=1, relheight=1)
 
-register_button = ctk.CTkButton(root, text="Register", command=register, fg_color=("#60A060"), hover_color=("#006400"))
-login_button = ctk.CTkButton(root, text="Already have an account? Log in", command=login, fg_color=("#60A060"), hover_color=("#006400"))
+    login_log = ctk.CTkLabel(temp, text="Login:", fg_color=("white", "gray75"),
+                             text_color="black", width=150)
+    answer_log = ctk.CTkLabel(temp, text="Answer:", fg_color=("white", "gray75"),
+                                text_color="black", width=150)
 
-email_string.grid(row=0, column=0, padx=10, pady=5, sticky="e")
-login_string.grid(row=1, column=0, padx=10, pady=5, sticky="e")
-password_string.grid(row=2, column=0, padx=10, pady=5, sticky="e")
-question_string.grid(row=3, column=0, padx=10, pady=5, sticky="e")
-answer_string.grid(row=4, column=0, padx=10, pady=5, sticky="e")
+    login_field_log = ctk.CTkEntry(temp,corner_radius=0, width=150)
+    answer_field_log = ctk.CTkEntry(temp, show="*",corner_radius=0, width=150)
 
-email_field.grid(row=0, column=1, padx=10, pady=5)
-login_field.grid(row=1, column=1, padx=10, pady=5)
-password_field.grid(row=2, column=1, padx=10, pady=5)
-questions_field.grid(row=3, column=1, padx=10, pady=5)
-answer_field.grid(row=4, column=1, padx=10, pady=5)
+    login_button_log = ctk.CTkButton(temp, text="Login",
+                                     command=lambda: answer_log_in(login_field_log.get(), "",
+                                                            answer_field_log.get()), fg_color=("#60A060"), hover_color=("#006400"),corner_radius=0, width=150)
+    back_button = ctk.CTkButton(temp, text="Back",
+                                     command=lambda: main_window(temp), fg_color=("#60A060"),
+                                     hover_color=("#006400"), corner_radius=0, width=150)
 
-register_button.grid(row=5, column=0, pady=10, columnspan=3)
-login_button.grid(row=6, column=0, pady=10, columnspan=3)
+    login_log.place(x=240, y=150)
+    answer_log.place(x=240, y=200)
+
+    login_field_log.place(x=410, y=150)
+    answer_field_log.place(x=410, y=200)
+
+    login_button_log.place(x=240, y=250)
+    back_button.place(x=410, y=250)
+
+    temp.mainloop()
+
+def main_window(frame):
+    if frame is not None:
+        frame.destroy()
+    root = tk.Tk()
+    root.title("GreenGame")
+    root.resizable(False, False)
+    root.geometry("800x600+560+240")
+
+    image = Image.open("background.jpg")
+    background_image = ImageTk.PhotoImage(image)
+
+    background_label = tk.Label(root, image=background_image)
+    background_label.place(relwidth=1, relheight=1)
+
+    login_log = ctk.CTkLabel(root, text="Login:", fg_color=("white", "gray75"),
+                             text_color="black", width=150,corner_radius=0)
+    password_log = ctk.CTkLabel(root, text="Password:", fg_color=("white", "gray75"),
+                                text_color="black", width=150,corner_radius=0)
+
+    login_field_log = ctk.CTkEntry(root,corner_radius=0,width=150)
+    password_field_log = ctk.CTkEntry(root, show="*",corner_radius=0,width=150)
+
+    login_button_log = ctk.CTkButton(root, text="Login",
+                                     command=lambda: log_in(login_field_log.get(), password_field_log.get(),
+                                                            ""),fg_color=("#60A060"), hover_color=("#006400"),corner_radius=0,width=150)
+
+    login_log.place(x=240, y=150)
+    password_log.place(x=240, y=200)
+
+    login_field_log.place(x=410, y=150)
+    password_field_log.place(x=410, y=200)
+
+    login_button_log.place(x=240, y=250)
+
+    register_button = ctk.CTkButton(root, text="Register", command=lambda: register(root), fg_color=("#60A060"),
+                                 hover_color=("#006400"),corner_radius=0,width=150)
+
+    forgot_password_button = ctk.CTkButton(root, text="Forgot password?", command=lambda: answer_login(root), fg_color=("#60A060"),
+                                 hover_color=("#006400"),corner_radius=0,width=150)
+
+    register_button.place(x=410, y=250)
+
+    forgot_password_button.place(x=325, y=300)
+
+    session = SessionController()
+    root.mainloop()
+
+    session.close()
 
 session = SessionController()
-root.mainloop()
-
-session.close()
+main_window(None)

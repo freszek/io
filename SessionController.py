@@ -5,6 +5,7 @@ class SessionController:
     def __init__(self):
         self.session_user = None
         self.user_dao = UserDao()
+        self.counter = 0
 
     def register(self, login, password, email, answer, question):
         if self.check_login(login):
@@ -28,6 +29,9 @@ class SessionController:
         return False
 
     def log_in(self, login: str, password: str, answer: str) -> bool:
+        self.counter += 1
+        if self.counter >= 5:
+            return
         if answer != "":
             if self.check_login(login) and self.check_answer(login, answer):
                 print("ZALOGOWANY")
@@ -41,6 +45,7 @@ class SessionController:
                 self.session_user = self.user_dao.get_by_login(login)
                 self.session_user.is_logged = True
                 return True
+        print("Niezalogowany")
         return False
 
     def check_if_logged(self) -> bool:
