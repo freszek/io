@@ -29,7 +29,7 @@ class PlayerMovement:
 
 
     def choose_mini_game(self):
-        random_number = random.randint(3, 3)
+        random_number = random.randint(0, 3)
         return self.game_list[random_number]
 
 
