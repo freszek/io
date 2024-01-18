@@ -1,4 +1,6 @@
 import tkinter as tk
+from tkinter import messagebox
+
 import customtkinter as ctk
 from SessionController import SessionController
 from PIL import Image, ImageTk
@@ -7,7 +9,10 @@ from PIL import Image, ImageTk
 def confirm():
     password = entry_password.get()
     if session.delete_user(password):
-        print("User deleted")
+        messagebox.showwarning(title="Error", message="User deleted.")
+    else:
+        messagebox.showwarning(title="Error", message="Wrong password.")
+
 
 
 root = tk.Tk()

@@ -9,7 +9,6 @@ def confirm():
     password = entry_password.get()
     new_password = entry_new_password.get()
     if len(new_password) >= 8:
-        session.change_password(password, new_password)
         if not session.change_password(password, new_password):
             messagebox.showwarning(title="Error", message="Wrong old password.")
         else:
