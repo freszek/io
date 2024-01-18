@@ -8,7 +8,7 @@ def text_objects(msg, fontobj, color='black'):
     text_surf = fontobj.render(msg, True, color)
     return text_surf, text_surf.get_rect()
 
-def message_display(msg, x=mglobals.DISPLAY_W/2, y=mglobals.DISPLAY_H/2, clear_color=None,
+def message_display(msg, x=mglobals.DISPLAY_W / 2, y=mglobals.DISPLAY_H / 2, clear_color=None,
                     color='black', fntsize='big', center_coord=True):
     if clear_color:
         mglobals.GD.fill(mglobals.color_map[clear_color])

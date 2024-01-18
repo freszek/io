@@ -1,14 +1,13 @@
 import pygame
-import utils
 import mglobals
-import dice
+from GameMain import dice
 
 
 class DiceUI(pygame.sprite.Sprite):
     def __init__(self, number1):
         super(DiceUI, self).__init__()
         self.number1 = number1
-        textfont = pygame.font.Font('./monaco.ttf', mglobals.fontsize_map['mid'])
+        textfont = pygame.font.Font('GameMain/monaco.ttf', mglobals.fontsize_map['mid'])
         self.image = textfont.render('You rolled : %d' % self.number1,
                                      False, mglobals.color_map['black'])
         self.rect = self.image.get_rect()
@@ -39,7 +38,7 @@ class PRINTUI(pygame.sprite.Sprite):
         self.color = mglobals.color_map[color]
         self.fntsize = mglobals.fontsize_map[fntsize]
         self.alias = alias
-        textfont = pygame.font.Font('./monaco.ttf', self.fntsize)
+        textfont = pygame.font.Font('GameMain/monaco.ttf', self.fntsize)
         self.image = textfont.render(self.message, self.alias, self.color)
         self.rect = self.image.get_rect()
         self.unset_x_y()

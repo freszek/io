@@ -205,7 +205,7 @@ def start_game_on_board():
     player_selector = PlayerAvatar(mglobals.DISPLAY_W, mglobals.DISPLAY_H, 6)
     selected_player_avatar = player_selector.choose_player()
     mglobals.P1_IMG = pygame.image.load(selected_player_avatar)
-    mglobals.P2_IMG = pygame.image.load('pics/p2.png')
+    mglobals.P2_IMG = pygame.image.load('GameMain/pics/p2.png')
 
     round.round_loop()
 
@@ -273,7 +273,7 @@ def main_game_loop():
 
     def start_game():
         print("hello")
-        subprocess.run(["python", "main_board.py"])
+        subprocess.run(["python", "GameMain/main_board.py"])
         pygame.quit()
 
 

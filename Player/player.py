@@ -2,9 +2,9 @@ import random
 
 import pygame
 
+from GameMain import utils
 import mglobals
-import utils
-from mini_game import MiniGame
+from MiniGameManager.mini_game import MiniGame
 from mainEvents import game
 
 
@@ -29,7 +29,7 @@ class PlayerMovement:
 
 
     def choose_mini_game(self):
-        random_number = random.randint(0, 3)
+        random_number = random.randint(0, 0)
         return self.game_list[random_number]
 
 

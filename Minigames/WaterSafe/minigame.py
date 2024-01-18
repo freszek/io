@@ -134,6 +134,8 @@ class WaterSafeGame:
             "ESC-zatrzymanie/wznowienie gry",
             "Możesz również kliknąć w inne miejsce, aby się przemieszczać.",
             "Masz 30 sekund na ukończenie gry. ",
+            "Musisz zdobyć przynajmniej 5 punktów, czyli zoszczędzić 5l wody.",
+            "Początkowy stan wody to 13l.",
             "Oszczędzanie wody to klucz do zrównoważonego rozwoju i ochrony środowiska. ",
             "Właściwe gospodarowanie wodą pomaga nie tylko środowisku, ",
             "ale także zmniejsza koszty i wspiera globalne wysiłki dotyczące dostępu do czystej wody.",
