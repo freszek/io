@@ -3,6 +3,7 @@ import random
 import pygame
 
 import mglobals
+import utils
 from mini_game import MiniGame
 from mainEvents import game
 
@@ -19,10 +20,19 @@ class PlayerMovement:
         self.position = position
         self.player_name = player_name
         self.player_img = player_img
+        self.result = 0
         self.x, self.y = 720, 730
         game1 = MiniGame(1, "WaterSafe", 30, 5)
         game2 = MiniGame(2, "CleanUp", 30, 5)
-        self.game_list = [game1, game2]
+        game3 = MiniGame(3, "EkoSnake", 30, 5)
+        game4 = MiniGame(4, "Snake", 30, 5)
+        self.game_list = [game1, game2, game3, game4]
+        self.result_game = 0
+
+
+    def choose_mini_game(self):
+        random_number = random.randint(0, 3)
+        return self.game_list[random_number]
 
 
     def advance(self, count):
@@ -48,13 +58,16 @@ class PlayerMovement:
         self.reposition()
         self.render()
 
-        result = 0
+        
 # =============================================================================
-#         if not self.position % 5 or not self.position % 3:
-#             while result < 5:
-#                 result = self.game_list[0].startMinigame()
+        self.result_game = 0
+        if self.position != 0:
+            while self.result_game < 5:
+                self.result_game = self.choose_mini_game().startMinigame()
+        self.result_game += self.result_game
 # =============================================================================
-
+        utils.draw_board()
+        self.render()
         if old_position + count >= mglobals.BOARD_SQUARES:
             game()
                  
