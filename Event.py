@@ -51,7 +51,8 @@ class Event(EventInterface):
                                round(time.perf_counter() - self.start_time, 3), to_string(self.level))
         stats = [[self.event_id, player_id, self.score, round(time.perf_counter() - self.start_time, 3),
                  to_string(self.level)]]
-        achievements = db.get_session_achievements(player_id)
+        achievements_ids = db.get_session_achievements(player_id)
+        achievements = [db.get_achievement(el) for el in achievements_ids]
         db.set_achievements(player_id)
         self.start_time = 0
         self.questions = []

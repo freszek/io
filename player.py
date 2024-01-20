@@ -30,7 +30,7 @@ class PlayerMovement:
 
     def choose_mini_game(self):
         random_number = random.randint(0, 3)
-        return self.game_list[random_number]
+        return self.game_list[0]
 
     def advance(self, count):
         currentplayer = mglobals.PLAYER_OBJ[self.player_name]
@@ -57,32 +57,29 @@ class PlayerMovement:
 
         
 # =============================================================================
-        self.result_game = 0
+        """self.result_game = 0
         if self.position != 0:
             while self.result_game < 5:
                 self.result_game = self.choose_mini_game().startMinigame()
-        self.result_game += self.result_game
+        self.result_game += self.result_game"""
 # =============================================================================
-        utils.draw_board()
-        self.render()
         if old_position + count >= mglobals.BOARD_SQUARES:
             game(self.player_name)
+        utils.draw_board()
+        self.render()
 
     def reposition(self):
         # If the position corresponds to a square
         if self.position % 10 == 0:
             if self.position in [0, 10]:
                 self.y = mglobals.DISPLAY_H - PlayerMovement.PIMG_HEIGHT - 33
-                self.x = 720 if self.position == 0 \
-                    else 25
+                self.x = 720 if self.position == 0 else 25
             else:
                 self.y = 33
-                self.x = 720 if self.position == 30 \
-                    else 25
+                self.x = 720 if self.position == 30 else 25
 
         # If the position corresponds to a vertical rectangle
-        elif (0 < self.position < 10) or \
-                (20 < self.position < 30):
+        elif (0 < self.position < 10) or (20 < self.position < 30):
             if 0 < self.position < 10:
                 self.y = 730
                 self.x = (mglobals.BOARD_WIDTH - PlayerMovement.SQ_HEIGHT_WIDTH
@@ -137,8 +134,7 @@ class PlayerSelection:
             self.cw, self.ch = PlayerSelection.SQ_HEIGHT_WIDTH, PlayerSelection.SQ_HEIGHT_WIDTH
 
         # If the position corresponds to a vertical rectangle
-        elif (0 < self.position < 10) or \
-                (20 < self.position < 30):
+        elif (0 < self.position < 10) or (20 < self.position < 30):
             if 0 < self.position < 10:
                 self.y = (mglobals.DISPLAY_H - PlayerSelection.RECT_HEIGHT)
                 self.x = (mglobals.BOARD_WIDTH

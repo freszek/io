@@ -94,10 +94,5 @@ class AchievementsWindow:
                           background="lightgreen", foreground="black").grid(row=i + 1, column=2, padx=10,
                                                                             pady=5, sticky="w")
         else:
-            if self.is_all is False:
-                ttk.Label(self.achieve_frame, text="Gracz nie posiada żadnych osiągnięć!", font=("Arial", 15, "bold"),
-                          background="#c1ffc1", foreground="black").grid(row=0, column=1, padx=10, pady=5, sticky="w")
-            else:
-                ttk.Label(self.achieve_frame, text="Gracz nie zdobył żadnych osiągnięć w tej sesji!",
-                          font=("Arial", 15, "bold"), background="#c1ffc1",
-                          foreground="black").grid(row=0, column=1, padx=10, pady=5, sticky="w")
+            ttk.Label(self.achieve_frame, text="Gracz nie posiada żadnych osiągnięć!", font=("Arial", 15, "bold"),
+                      background="#c1ffc1", foreground="black").grid(row=0, column=1, padx=10, pady=5, sticky="w")

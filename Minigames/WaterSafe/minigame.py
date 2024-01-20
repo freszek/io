@@ -144,7 +144,6 @@ class WaterSafeGame:
         self.current_elapsed_time = 0
         self.current_elapsed_time_before = 0
 
-
     def generate_tap_positions(self, num_taps):
         tap_positions = []
         occupied_rects = []
@@ -232,8 +231,6 @@ class WaterSafeGame:
         self.clock.tick()
         self.current_elapsed_time_before += (pygame.time.get_ticks() - paused_start_time) / 1000
         self.clock.tick_busy_loop(paused_clock_time)
-
-
 
     def run_g(self):
         player = Player(self.WIDTH, self.HEIGHT)

@@ -4,11 +4,11 @@ from StatsWindow import StatsWindow
 from AchievementsWindow import AchievementsWindow
 
 
-def game(player_name):
+def game(player_name, width=1200, height=800):
     session_data = [[] for _ in range(3)]
     pygame.init()
 
-    screen_w, screen_h = 800, 600
+    screen_w, screen_h = width, height
     screen = pygame.display.set_mode((screen_w, screen_h))
     pygame.display.set_caption("Eventy")
 
@@ -47,11 +47,11 @@ def game(player_name):
                             print("Błąd")
                     elif achievement_button_rect.collidepoint(mouse_x, mouse_y):
                         try:
-                            AchievementsWindow([session_data[0:2:2]])
+                            AchievementsWindow([session_data[0], session_data[2]])
                         except IndexError:
                             print("Błąd")
 
-        screen.fill((193, 255, 193))
+        screen.fill((255, 255, 255))
 
         pygame.draw.rect(screen, (144, 238, 0), quiz_button_rect)
         pygame.draw.rect(screen, (255, 0, 0), stats_button_rect)
@@ -77,4 +77,4 @@ def game(player_name):
         pygame.display.flip()
         clock.tick(60)
 
-    pygame.quit()  # tu jest problem
+    return 0
