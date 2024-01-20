@@ -1,4 +1,5 @@
 import pygame
+import sys
 
 import mglobals
 import round
@@ -12,6 +13,8 @@ def display_rules():
     app.run()
 
 def main():
+    current_user_login = str(sys.argv[1])
+    print(current_user_login)
     mglobals.init()
     # showing game rules
     display_rules()
@@ -21,7 +24,7 @@ def main():
     mglobals.P1_IMG = pygame.image.load(selected_player_avatar)
     mglobals.P2_IMG = pygame.image.load('GameMain/pics/p2.png')
 
-    round.round_loop()
+    round.round_loop(current_user_login)
     pygame.quit()
     quit()
 

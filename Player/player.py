@@ -15,8 +15,7 @@ class PlayerMovement:
     PIMG_WIDTH = 60
     PIMG_HEIGHT = 40
 
-
-    def __init__(self, player_name, player_img, position=0):
+    def __init__(self, player_name, player_img, position):
         self.position = position
         self.player_name = player_name
         self.player_img = player_img
@@ -41,21 +40,6 @@ class PlayerMovement:
         prev_pos = self.position
         old_position = self.position
         self.position = (self.position + count) % mglobals.BOARD_SQUARES
-        # if self.position == 0 or (prev_pos > self.position and \
-        #                           not currentplayer.jail.in_jail):
-        #     currentplayer.give_player_cash(200)
-        # if self.position in infra.CHANCE_INDEXLIST + infra.CHEST_INDEXLIST:
-        #     infra.ChanceChest().chance_chest(self.player_name)
-        # # Income Tax deduction
-        # if self.position == 4:
-        #     currentplayer.take_player_cash(200)
-        # # Super Tax deduction
-        # elif self.position == 38:
-        #     currentplayer.take_player_cash(100)
-        # # Go to jail
-        # elif self.position == 30:
-        #     self.position = 10
-        #     currentplayer.jail.in_jail = True
         self.reposition()
         self.render()
 
@@ -71,8 +55,11 @@ class PlayerMovement:
         self.render()
         if old_position + count >= mglobals.BOARD_SQUARES:
             game()
-                 
-                 
+
+    def set_starting_position(self):
+        self.reposition()
+        self.render()
+
     def reposition(self):
         # If the position corresponds to a square
         if self.position % 10 == 0:
@@ -120,7 +107,7 @@ class PlayerSelection:
     RECT_HEIGHT = 106
     SQ_HEIGHT_WIDTH = 106
 
-    def __init__(self, color, position=0):
+    def __init__(self, color, position):
         self.position = position
         self.color = color
         self.x, self.y = 0, 0
@@ -175,6 +162,11 @@ class PlayerSelection:
         self.reposition()
         self.render()
 
+    def set_starting_position(self):
+        self.reposition()
+        self.render()
+        utils.draw_board()
+        self.render()
     def render(self):
         pygame.draw.rect(mglobals.GD, mglobals.color_map[self.color],
                          [self.x, self.y, self.cw, self.ch],
@@ -191,12 +183,12 @@ class Player:
     RECT_WIDTH = 65
     SQ_HEIGHT_WIDTH = 106
 
-    def __init__(self, player_name):
+    def __init__(self, player_name, initial_position):
         self.player_name = player_name
         self.color = mglobals.PLAYER_ONE_COLOR \
-            if self.player_name == mglobals.PLAYER_ONE \
+            if self.player_name == player_name \
             else mglobals.PLAYER_TWO_COLOR
-        self.ps = PlayerSelection(self.color)
-        self.pm = PlayerMovement(self.player_name, mglobals.P1_IMG) \
-            if self.player_name == mglobals.PLAYER_ONE \
-            else PlayerMovement(self.player_name, mglobals.P2_IMG)
+        self.ps = PlayerSelection(self.color, initial_position)
+        self.pm = PlayerMovement(self.player_name, mglobals.P1_IMG, initial_position) \
+            if self.player_name == player_name \
+            else PlayerMovement(self.player_name, mglobals.P2_IMG, initial_position)
