@@ -717,7 +717,7 @@ def ranking(current_user):
         
         current_date = datetime.now().strftime('%Y-%m-%d')
         # Wywołanie metody add_points z aktualną datą
-        success = user_dao.add_points(user_id=current_user.id, points=10, date=current_date, category_name='Quiz')
+        success = user_dao.add_points(user_id=current_user.id, points=0, date=current_date, category_name='Quiz')
 
         while ranking_opened:
             for event in pygame.event.get():
