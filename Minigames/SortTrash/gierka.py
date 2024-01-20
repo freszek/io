@@ -1,180 +1,29 @@
-# import pygame
-# import sys
-# import random
-# from menu2 import show_menu
-#
-#
-# class Game:
-#     # Funkcja generująca planszę gry
-#     def generate_game():
-#         containers_group.empty()
-#         trash_group.empty()
-#
-#         # Tworzenie kontenerów
-#         for i in range(5):
-#             container = Container(CONTAINER_COLORS[i], i * (WIDTH // 5), HEIGHT - CONTAINER_HEIGHT)
-#             containers_group.add(container)
-#
-#         # Tworzenie śmieci
-#         for i in range(4):  # Utwórz po trzy śmieci dla każdego koloru
-#             for color in TRASH_COLORS:
-#                 trash = Trash(color, random.randint(0, WIDTH - TRASH_WIDTH), random.randint(0, HEIGHT - CONTAINER_HEIGHT - TRASH_HEIGHT - 5 ))
-#                 trash_group.add(trash)
-#
-#     # Funkcja wyświetlająca menu
-#     def show_menu_and_start_game():
-#         if not show_menu():
-#             pygame.quit()
-#             sys.exit()
-#
-#         generate_game()
-#
-#     # Inicjalizacja Pygame
-#     pygame.init()
-#
-#     # Ustawienia okna gry
-#     WIDTH, HEIGHT = 800, 600
-#     FPS = 60
-#     WHITE = (255, 255, 255)
-#
-#     # Inicjalizacja ekranu
-#     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-#     pygame.display.set_caption("Sortowanie śmieci")
-#
-#     # Kolory kontenerów
-#     CONTAINER_COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 150, 0), (255, 0, 150)]
-#
-#     # Kolory śmieci
-#     TRASH_COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 150, 0), (255, 0, 150)]
-#
-#     # Rozmiary kontenerów
-#     CONTAINER_WIDTH = 100
-#     CONTAINER_HEIGHT = 100
-#
-#     # Rozmiary śmieci
-#     TRASH_WIDTH = 30
-#     TRASH_HEIGHT = 30
-#
-# # Klasa reprezentująca kontener
-# class Container(pygame.sprite.Sprite):
-#     def __init__(self, color, x, y):
-#         pygame.sprite.Sprite.__init__(self)
-#         self.image = pygame.Surface((CONTAINER_WIDTH, CONTAINER_HEIGHT))
-#         self.image.fill(color)
-#         self.rect = self.image.get_rect()
-#         self.rect.x = x
-#         self.rect.y = y
-#
-# # Klasa reprezentująca śmieci
-# class Trash(pygame.sprite.Sprite):
-#     def __init__(self, color, x, y):
-#         pygame.sprite.Sprite.__init__(self)
-#         self.image = pygame.Surface((TRASH_WIDTH, TRASH_HEIGHT))
-#         self.image.fill(color)
-#         self.rect = self.image.get_rect()
-#         self.rect.x = x
-#         self.rect.y = y
-#         self.offset_x = 0
-#         self.offset_y = 0
-#         self.dragging = False  # Flaga określająca, czy śmieć jest przeciągany
-#
-# # Grupa sprite'ów
-# containers_group = pygame.sprite.Group()
-# trash_group = pygame.sprite.Group()
-#
-# show_menu_and_start_game()  # Wyświetl menu i rozpocznij grę
-#
-# # Ustawienia licznika czasu
-# start_time = 0
-# elapsed_time = 0
-# game_running = True
-# end_time = 0  # Dodana zmienna end_time przed pętlą główną
-# game_completed = False  # Dodaj zmienną game_completed, aby śledzić, czy gra została ukończona
-#
-# # Przygotowanie obiektu font przed pętlą gry
-# font = pygame.font.Font(None, 36)
-#
-# # Pętla gry
-# while game_running:
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT:
-#             game_running = False
-#         elif event.type == pygame.MOUSEBUTTONDOWN:
-#             # Sprawdzanie, czy kliknięto na któryś z elementów w grupie śmieci
-#             for trash in trash_group:
-#                 if trash.rect.collidepoint(event.pos):
-#                     trash.dragging = True
-#                     trash.offset_x = event.pos[0] - trash.rect.x
-#                     trash.offset_y = event.pos[1] - trash.rect.y
-#         elif event.type == pygame.MOUSEBUTTONUP:
-#             # Zakończenie przeciągania śmieci
-#             for trash in trash_group:
-#                 if trash.dragging:
-#                     trash.dragging = False
-#                     # Sprawdzenie, czy śmieć trafił do odpowiedniego kontenera
-#                     container_hit = pygame.sprite.spritecollideany(trash, containers_group)
-#                     if container_hit and trash.image.get_at((0, 0)) == container_hit.image.get_at((0, 0)):
-#                         trash_group.remove(trash)
-#                         if not trash_group:
-#                             end_time = pygame.time.get_ticks() - start_time
-#                             game_completed = True
-#
-#     # Aktualizacja położenia przeciąganych śmieci
-#     for trash in trash_group:
-#         if trash.dragging:
-#             trash.rect.x = pygame.mouse.get_pos()[0] - trash.offset_x
-#             trash.rect.y = pygame.mouse.get_pos()[1] - trash.offset_y
-#
-#     # Rysowanie
-#     screen.fill(WHITE)
-#     containers_group.draw(screen)
-#     trash_group.draw(screen)
-#
-#     # Sprawdzenie, czy wszystkie śmieci zostały wyrzucone do odpowiednich kontenerów
-#     if not trash_group and game_running and game_completed:
-#         trash_group.remove(trash)
-#         containers_group.remove(containers_group)
-#
-#         # Dodaj komunikat "Gratulacje! Twój czas to: [czas w sekundach]"
-#         congratulations_text = font.render(f"Gratulacje! Twój czas to: {end_time // 1000} s", True, (0, 0, 0))
-#         screen.blit(congratulations_text, (WIDTH // 2 - 200, HEIGHT // 2 - 30))
-#
-#         # Dodaj przycisk "Powrót do menu głównego"
-#         return_to_menu_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 + 50, 200, 50)
-#         pygame.draw.rect(screen, (0, 255, 0), return_to_menu_button)
-#         return_to_menu_text = font.render("Powrót do menu głównego", True, (0, 0, 0))
-#         screen.blit(return_to_menu_text, (WIDTH // 2 - 150, HEIGHT // 2 + 65))
-#
-#         # Sprawdź, czy kliknięto na przycisk "Powrót do menu głównego"
-#         if pygame.mouse.get_pressed()[0] and return_to_menu_button.collidepoint(pygame.mouse.get_pos()):
-#             # W przypadku kliknięcia przycisku, zresetuj zmienne gry i wyświetl menu
-#             game_completed = False
-#             show_menu_and_start_game()  # Wyświetl menu i zacznij grę od nowa
-#             start_time = pygame.time.get_ticks()  # Zresetuj licznik czasu
-#
-#     # Aktualizacja ekranu
-#     pygame.display.flip()
-#
-#     # Ustawienie liczby klatek na sekundę
-#     pygame.time.Clock().tick(FPS)
-
 import pygame
 import sys
 import random
+import os
 
 class Container(pygame.sprite.Sprite):
-    def __init__(self, color, x, y, CONTAINER_WIDTH, CONTAINER_HEIGHT):
+    def __init__(self, color, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((CONTAINER_WIDTH, CONTAINER_HEIGHT))
-        self.image.fill(color)
+        self.CONTAINER_WIDTH = 100
+        self.CONTAINER_HEIGHT = 100
+        self.image = self.load_container_image(color)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
 
+    def load_container_image(self, color):
+        image_path = os.path.join("Minigames/SortTrash/pics_game", f"container_{color[0]}_{color[1]}_{color[2]}.png")
+        image = pygame.image.load(image_path).convert_alpha()
+        return pygame.transform.scale(image, (self.CONTAINER_WIDTH, self.CONTAINER_HEIGHT))
+
 class Trash(pygame.sprite.Sprite):
-    def __init__(self, color, x, y, TRASH_WIDTH, TRASH_HEIGHT):
+    def __init__(self, color, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((TRASH_WIDTH, TRASH_HEIGHT))
+        self.TRASH_WIDTH = 30
+        self.TRASH_HEIGHT = 30
+        self.image = pygame.Surface((self.TRASH_WIDTH, self.TRASH_HEIGHT))
         self.image.fill(color)
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -190,40 +39,59 @@ class Game:
         self.HEIGHT = height
         self.FPS = 60
         self.WHITE = (255, 255, 255)
+
+        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        pygame.display.set_caption("Sortowanie śmieci")
+
         self.CONTAINER_COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 150, 0), (255, 0, 150)]
-        self.TRASH_COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 150, 0), (255, 0, 150)]
+        self.TRASH_COLORS = [(255, 0, 0), (50, 117, 38), (89, 111, 187), (246, 139, 25), (248, 201, 25)]
         self.CONTAINER_WIDTH = 100
         self.CONTAINER_HEIGHT = 100
         self.TRASH_WIDTH = 30
         self.TRASH_HEIGHT = 30
-        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-        pygame.display.set_caption("Sortowanie śmieci")
+
         self.containers_group = pygame.sprite.Group()
         self.trash_group = pygame.sprite.Group()
+
+        self.max_score = 300
         self.start_time = 0
         self.elapsed_time = 0
         self.game_running = True
         self.end_time = 0
         self.game_completed = False
-        self.font = pygame.font.Font(None, 36)
+        self.normalized_score = 0
 
     def generate_game(self):
         self.containers_group.empty()
         self.trash_group.empty()
 
         for i in range(5):
-            container = Container(self.CONTAINER_COLORS[i], i * (self.WIDTH // 5), self.HEIGHT - self.CONTAINER_HEIGHT, self.CONTAINER_WIDTH, self.CONTAINER_HEIGHT)
+            container = Container(self.CONTAINER_COLORS[i], i * (self.WIDTH // 5), self.HEIGHT - self.CONTAINER_HEIGHT)
             self.containers_group.add(container)
 
-        for i in range(4):
+        for i in range(3):
             for color in self.TRASH_COLORS:
                 trash = Trash(color, random.randint(0, self.WIDTH - self.TRASH_WIDTH),
-                              random.randint(0, self.HEIGHT - self.CONTAINER_HEIGHT - self.TRASH_HEIGHT - 5), self.TRASH_WIDTH, self.TRASH_HEIGHT)
+                              random.randint(0, self.HEIGHT - self.CONTAINER_HEIGHT - self.TRASH_HEIGHT - 5))
                 self.trash_group.add(trash)
 
     def show_menu(self):
-        title_text = self.font.render("Green game", True, (0, 0, 0))
-        start_button = pygame.Rect(self.WIDTH // 2 - 100, self.HEIGHT // 2 - 50, 200, 50)
+        WIDTH, HEIGHT = self.WIDTH, self.HEIGHT
+        FPS = self.FPS
+        WHITE = self.WHITE
+
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("Menu")
+
+        font = pygame.font.SysFont("Yu Gothic UI", 28, bold=True)
+
+        rules_text = font.render("Zasady minigry:", True, (0, 0, 0))
+        rules_text2 = font.render("Przeciągnij śmieci do odpowiadających im kontenerów", True, (0, 0, 0))
+        rules_text3 = font.render("w jak najkrótszym czasie!", True, (0, 0, 0))
+        start_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 1 - 150, 200, 50)
+        logo_image = pygame.image.load("logo.png")
+        logo_image = pygame.transform.scale(logo_image, (250, 250))
+        logo_rect = logo_image.get_rect(center=(WIDTH // 2, HEIGHT // 4.5))
 
         while True:
             for event in pygame.event.get():
@@ -234,32 +102,36 @@ class Game:
                     if event.button == 1 and start_button.collidepoint(event.pos):
                         return True
 
-            self.screen.fill(self.WHITE)
-            pygame.draw.rect(self.screen, (0, 255, 0), start_button)
-            self.screen.blit(title_text, (self.WIDTH // 2 - 100, self.HEIGHT // 2 - 100))
-            start_text = self.font.render("Start", True, (0, 0, 0))
-            self.screen.blit(start_text, (self.WIDTH // 2 - 60, self.HEIGHT // 2 - 40))
+            screen.fill(WHITE)
+
+            pygame.draw.rect(screen, (144, 238, 144), start_button.inflate(-10, -10),
+                             border_radius=10)
+
+            rules_text_rect = rules_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 20))
+
+            screen.blit(logo_image, logo_rect)
+            screen.blit(rules_text, rules_text_rect)
+            screen.blit(rules_text2, (WIDTH // 2 - 380, HEIGHT // 1.75 - 20))
+
+            rules_text3_rect = rules_text3.get_rect(center=(WIDTH // 2, HEIGHT // 1.75 + 20))
+            screen.blit(rules_text3, rules_text3_rect)
+            start_text = font.render("Start", True, (0, 0, 0))
+
+            start_text_rect = start_text.get_rect(center=start_button.center)
+            screen.blit(start_text, start_text_rect)
 
             pygame.display.flip()
-            pygame.time.Clock().tick(self.FPS)
+            pygame.time.Clock().tick(FPS)
 
     def show_menu_and_start_game(self):
         if not self.show_menu():
             pygame.quit()
             sys.exit()
 
-    def close_game(self):
-        waiting_for_exit = True
-        while waiting_for_exit:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    waiting_for_exit = False
-        return self.end_time
+        self.generate_game()
 
     def run_game(self):
         self.show_menu_and_start_game()
-        self.generate_game()
-
         while self.game_running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -275,11 +147,21 @@ class Game:
                         if trash.dragging:
                             trash.dragging = False
                             container_hit = pygame.sprite.spritecollideany(trash, self.containers_group)
-                            if container_hit and trash.image.get_at((0, 0)) == container_hit.image.get_at((0, 0)):
-                                self.trash_group.remove(trash)
-                                if not self.trash_group:
-                                    self.end_time = pygame.time.get_ticks() - self.start_time
-                                    self.game_completed = True
+                            if container_hit is not None:
+                                if self.containers_group.sprites().index(container_hit) == 0:
+                                    container_color = (255, 0, 0)
+                                else:
+                                    container_color = container_hit.image.get_at(
+                                        (container_hit.image.get_width() // 2, container_hit.image.get_height() // 2))[:-1]
+
+                                trash_color = trash.image.get_at(
+                                    (trash.image.get_width() // 2, trash.image.get_height() // 2))[:-1]
+
+                                if trash_color == container_color:
+                                    self.trash_group.remove(trash)
+                                    if not self.trash_group:
+                                        self.end_time = pygame.time.get_ticks() - self.start_time
+                                        self.game_completed = True
 
             for trash in self.trash_group:
                 if trash.dragging:
@@ -291,25 +173,18 @@ class Game:
             self.trash_group.draw(self.screen)
 
             if not self.trash_group and self.game_running and self.game_completed:
-                self.trash_group.remove(trash)
-                self.containers_group.remove(self.containers_group)
+                self.normalized_score = max(0, self.max_score - (self.end_time * 10 // 1000))
 
-                congratulations_text = self.font.render(f"Gratulacje! Twój czas to: {self.end_time // 1000} s",
-                                                        True, (0, 0, 0))
-                self.screen.blit(congratulations_text, (self.WIDTH // 2 - 200, self.HEIGHT // 2 - 30))
+                congratulations_text = pygame.font.Font(None, 36).render(
+                    f"Gratulacje! Twój czas to: {self.end_time // 1000} s", True, (0, 0, 0))
+                congratulations_rect = congratulations_text.get_rect(center=(self.WIDTH // 2, self.HEIGHT // 2 - 60))
+                self.screen.blit(congratulations_text, congratulations_rect.topleft)
 
-                return_to_menu_button = pygame.Rect(self.WIDTH // 2 - 100, self.HEIGHT // 2 + 50, 200, 50)
-                pygame.draw.rect(self.screen, (0, 255, 0), return_to_menu_button)
-                return_to_menu_text = self.font.render("Powrót do menu głównego", True, (0, 0, 0))
-                self.screen.blit(return_to_menu_text, (self.WIDTH // 2 - 150, self.HEIGHT // 2 + 65))
-
-                if pygame.mouse.get_pressed()[0] and return_to_menu_button.collidepoint(pygame.mouse.get_pos()):
-                    # self.game_completed = False
-                    # self.show_menu_and_start_game()
-                    # self.start_time = pygame.time.get_ticks()
-                    result = self.close_game()
-
-                    return result
+                score_text = pygame.font.Font(None, 36).render(f"Twój wynik: {self.normalized_score} pkt", True, (0, 0, 0))
+                score_rect = score_text.get_rect(center=(self.WIDTH // 2, self.HEIGHT // 2 - 20))
+                self.screen.blit(score_text, score_rect.topleft)
 
             pygame.display.flip()
             pygame.time.Clock().tick(self.FPS)
+            self.screen.fill(self.WHITE)
+        return self.normalized_score

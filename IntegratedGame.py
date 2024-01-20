@@ -1,3 +1,22 @@
+from datetime import datetime, timedelta
+import mglobals
+import hashlib
+import sqlite3
+from typing import List
+import pygame
+import sys
+from FriendList import FriendList, Button
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+import customtkinter as ctk
+from PIL import Image, ImageTk
+import subprocess
+
+from GameMain.game_rules import GameRulesApp
+from Player.player_avatar import PlayerAvatar
+
+
+# DEFINICJE KLAS ITP
 class User:
     def __init__(self, id, login, password, email, answer, question):
         self.id = id
@@ -9,18 +28,29 @@ class User:
         self.question = question
 
 
-import hashlib
-import sqlite3
-from typing import List
-import pygame
-import sys
-from FriendList import FriendList, Button
-import tkinter as tk
-import customtkinter as ctk
-from UserDao import *
-import subprocess
-#from gierka import show_menu_and_start_game
+class Points:
+    def __init__(self, value, date, category):
+        self.value = value
+        self.date = date
+        self.category = category
 
+    def get_value(self):
+        return self.value
+
+    def get_date(self):
+        return self.date
+
+    def get_category(self):
+        return self.category
+
+    def set_value(self, value):
+        self.value = value
+
+    def set_date(self, date):
+        self.date = date
+
+    def set_category(self, category):
+        self.category = category
 
 
 class UserDao:
@@ -28,6 +58,60 @@ class UserDao:
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
         self.create_table()
+        self.create_points_table()
+
+    def get_ranking_data(self, user_list, period='daily'):
+        ranking = {}
+
+        # Ustalenie zakresu dat dla okresu
+        current_date = datetime.now()
+        if period == 'daily':
+            start_date = current_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif period == 'weekly':
+            start_date = current_date - timedelta(days=current_date.weekday())
+            start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        for user in user_list:
+            user_points = self.get_user_points(user.id)
+            for point in user_points:
+                point_date = datetime.strptime(point.date, '%Y-%m-%d')
+                if start_date <= point_date < current_date:
+                    if user.login not in ranking:
+                        ranking[user.login] = 0
+                    ranking[user.login] += point.value
+
+        # Sortowanie wyników w celu utworzenia rankingu
+        sorted_ranking = sorted(ranking.items(), key=lambda x: x[1], reverse=True)
+        return sorted_ranking
+
+    def get_friends_ranking_data(self, user_id: int, period='daily'):
+        ranking = {}
+
+        # Ustalenie zakresu dat dla okresu
+        current_date = datetime.now()
+        if period == 'daily':
+            start_date = current_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif period == 'weekly':
+            start_date = current_date - timedelta(days=current_date.weekday())
+            start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        # Pobranie listy ID znajomych
+        friend_ids = self.get_friend_list(user_id)
+
+        # Pobranie punktów dla każdego znajomego
+        for friend_id in friend_ids:
+            friend_points = self.get_user_points(friend_id)
+            for point in friend_points:
+                point_date = datetime.strptime(point.date, '%Y-%m-%d')
+                if start_date <= point_date < current_date:
+                    friend = self.get_by_id(friend_id)
+                    if friend.login not in ranking:
+                        ranking[friend.login] = 0
+                    ranking[friend.login] += point.value
+
+        # Sortowanie wyników
+        sorted_ranking = sorted(ranking.items(), key=lambda x: x[1], reverse=True)
+        return sorted_ranking
 
     def create_table(self):
         query = '''
@@ -40,7 +124,18 @@ class UserDao:
             question TEXT
         )
         '''
+        query1 = '''
+        CREATE TABLE IF NOT EXISTS user_friends (
+            user_id INTEGER,
+            friend_id INTEGER,
+            PRIMARY KEY (user_id, friend_id),
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            FOREIGN KEY (friend_id) REFERENCES users(id)
+        );
+        '''
         self.conn.execute(query)
+        self.conn.commit()
+        self.conn.execute(query1)
         self.conn.commit()
 
     def get_all(self) -> List[User]:
@@ -99,26 +194,62 @@ class UserDao:
             return True
         except:
             return False
-        
+
     def get_friend_list(self, user_id):
         cursor = self.conn.cursor()
         cursor.execute('''
                 SELECT friend_id FROM user_friends WHERE user_id = ?
             ''', (user_id,))  # Zauważ użycie przecinka, aby utworzyć krotkę jednoelementową
-    
+
         friends = cursor.fetchall()
-    
+
         friend_ids = [friend[0] for friend in friends]
         return friend_ids
-    
+
     def delete_friend(self, user_id, friend_id):
         cursor = self.conn.cursor()
-    
+
         query = "DELETE FROM user_friends WHERE user_id = ? AND friend_id = ?"
         cursor.execute(query, (user_id, friend_id))
         self.conn.commit()
-    
+
         cursor.close()
+
+    def create_points_table(self):
+        query = '''
+        CREATE TABLE IF NOT EXISTS points (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            category_name TEXT NOT NULL,
+            points INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        )
+        '''
+        self.conn.execute(query)
+        self.conn.commit()
+
+    def get_user_points(self, user_id: int):
+        query = 'SELECT points, date, category_name FROM points WHERE user_id = ?'
+        cursor = self.conn.execute(query, (user_id,))
+        results = cursor.fetchall()
+
+        points_list = []
+        for result in results:
+            points = Points(result[0], result[1], result[2])
+            points_list.append(points)
+
+        return points_list
+
+    def add_points(self, user_id: int, points: int, date: str, category_name: str) -> bool:
+        query = 'INSERT INTO points (user_id, points, date, category_name) VALUES (?, ?, ?, ?)'
+        try:
+            self.conn.execute(query, (user_id, points, date, category_name))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return False
 
     def hash_password(self, password):
         return hashlib.sha256(password.encode()).hexdigest()
@@ -127,12 +258,11 @@ class UserDao:
         self.conn.close()
 
 
-
-
 class SessionController:
     def __init__(self):
         self.session_user = None
         self.user_dao = UserDao()
+        self.counter = 0
 
     def register(self, login, password, email, answer, question):
         if self.check_login(login):
@@ -169,6 +299,7 @@ class SessionController:
                 self.session_user = self.user_dao.get_by_login(login)
                 self.session_user.is_logged = True
                 return True
+        print("Niezalogowany")
         return False
 
     def check_if_logged(self) -> bool:
@@ -183,12 +314,27 @@ class SessionController:
         if user:
             user.is_logged = False
 
+    def delete_user(self, password: str) -> bool:
+        print(self.session_user)
+        if self.check_password(self.session_user.login, password):
+            self.user_dao.delete_user(self.session_user)
+            self.log_out(self.session_user.login)
+            return True
+        return False
+
+    def change_password(self, current_password: str, new_password: str) -> bool:
+        if self.check_password(self.session_user.login, current_password):
+            self.user_dao.update_user(self.session_user, new_password)
+            return True
+        return False
+
     def close(self):
         self.user_dao.close()
 
-global login_successful, session_controller, qeustions_field  # This will be used to control the flow based on login success
-login_successful = False  # Default to False until login is successful
-session_controller = SessionController()
+
+# WSZELAKO ROZUMIANA DEFINICJA GUI
+session = SessionController()
+
 
 def display_rules():
     # showing game rules
@@ -199,41 +345,521 @@ def display_rules():
     pygame.quit()
     quit()
 
+
 def start_game_on_board():
     mglobals.init()
     display_rules()
     player_selector = PlayerAvatar(mglobals.DISPLAY_W, mglobals.DISPLAY_H, 6)
     selected_player_avatar = player_selector.choose_player()
     mglobals.P1_IMG = pygame.image.load(selected_player_avatar)
-    mglobals.P2_IMG = pygame.image.load('GameMain/pics/p2.png')
+    mglobals.P2_IMG = pygame.image.load('pics/p2.png')
 
     round.round_loop()
 
-def show_login_form():
-    email_string.grid_forget()
-    email_field.grid_forget()
-    login_string.grid_forget()
-    login_field.grid_forget()
-    password_string.grid_forget()
-    password_field.grid_forget()
-    question_string.grid_forget()
-    questions_field.grid_forget()
-    answer_string.grid_forget()
-    answer_field.grid_forget()
-    register_button.grid_forget()
-    login_button.grid_forget()
 
-    # Pokaż elementy formularza logowania
-    login_form_login_string.grid(row=0, column=0)
-    login_form_login_field.grid(row=0, column=1)
-    login_form_password_string.grid(row=1, column=0)
-    login_form_password_field.grid(row=1, column=1)
-    login_form_answer_string.grid(row=2, column=0)
-    login_form_answer_field.grid(row=2, column=1)
-    login_form_login_button.grid(row=3, column=0)
+settings_opened = False
+ranking_opened = False
+
+
+def change_password_form():
+    def confirm_change_password(frame):
+        password = entry_password.get()
+        new_password = entry_new_password.get()
+        if len(new_password) >= 8:
+            if not session.change_password(password, new_password):
+                messagebox.showwarning(title="Błąd", message="Niepoprawne stare hasło.")
+            else:
+                messagebox.showinfo(title="Komunikat", message="Hasło zmienione.")
+                frame.destroy()
+        else:
+            messagebox.showwarning(title="Błąd", message="Nowe hasło jest za krótkie (min. 8 znaków).")
+
+    root = tk.Tk()
+    root.title("GreenGame")
+    root.resizable(False, False)
+    root.geometry("800x600+560+240")
+
+    image = Image.open("background.jpg")
+    background_image = ImageTk.PhotoImage(image)
+
+    background_label = tk.Label(root, image=background_image)
+    background_label.place(relwidth=1, relheight=1)
+
+    label_password = ctk.CTkLabel(root, text="Stare hasło:", fg_color=("white", "gray75"),
+                                  text_color="black", width=150, corner_radius=0)
+    label_password.place(x=240, y=150)
+    entry_password = ctk.CTkEntry(root, corner_radius=0, width=150, show="*")
+    entry_password.place(x=410, y=150)
+
+    label_new_password = ctk.CTkLabel(root, text="Nowe hasło:", fg_color=("white", "gray75"),
+                                      text_color="black", width=150, corner_radius=0)
+    label_new_password.place(x=240, y=200)
+    entry_new_password = ctk.CTkEntry(root, show="*", corner_radius=0, width=150)
+    entry_new_password.place(x=410, y=200)
+
+    confirm_button = ctk.CTkButton(root, text="Zmień hasło", command=lambda: confirm_change_password(root),
+                                   corner_radius=0, fg_color=("#60A060"),
+                                   hover_color=("#006400"), )
+    confirm_button.place(x=325, y=250)
+
+    global session
+    root.mainloop()
+
+    # session.close()
+
+
+def log_out():
+    global settings_opened, session
+    print(session.session_user.login)
+    settings_opened = False
+    session.close()
+    pygame.quit()
+    main_login_window(None)
+
+
+def delete_user_form():
+    def confirm_delete_user(frame):
+        password = entry_password.get()
+        if session.delete_user(password):
+            messagebox.showwarning(title="Błąd", message="Użytkownik usunięty.")
+            frame.destroy()
+            pygame.quit()
+            main_login_window(None)
+        else:
+            messagebox.showwarning(title="Błąd", message="Złe hasło.")
+
+    root = tk.Tk()
+    root.title("GreenGame")
+    root.resizable(False, False)
+    root.geometry("800x600+560+240")
+
+    image = Image.open("background.jpg")
+    background_image = ImageTk.PhotoImage(image)
+
+    background_label = tk.Label(root, image=background_image)
+    background_label.place(relwidth=1, relheight=1)
+
+    label_password = ctk.CTkLabel(root, text="Hasło:", corner_radius=0, width=150, fg_color=("white", "gray75"),
+                                  text_color="black")
+    label_password.place(x=240, y=200)
+    entry_password = ctk.CTkEntry(root, show="*", corner_radius=0, width=150)
+    entry_password.place(x=410, y=200)
+
+    confirm_button = ctk.CTkButton(root, text="Usuń użytkownika", command=lambda: confirm_delete_user(root),
+                                   corner_radius=0, width=150, fg_color=("#60A060"),
+                                   hover_color=("#006400"))
+    confirm_button.place(x=325, y=250)
+
+    global session
+    root.mainloop()
+
+    session.close()
+
+
+def register_in(email, login, password, answer, question):
+    global session
+    if "" in (email, login, password, question, answer):
+        messagebox.showwarning(title="Bład", message="Nie wszystkie dane.")
+        return
+
+    if len(password) < 8:
+        messagebox.showwarning(title="Błąd", message="Za krótkie hasło(min. 8 znaków).")
+        return
+    if session.check_login(login):
+        messagebox.showwarning(title="Błąd", message="Taki użytkownik istnieje. Zaloguj.")
+    if session.register(login, password, email, answer, question):
+        messagebox.showinfo(title="Komunikat", message="Użytkownik utworzony.")
+
+
+def register(frame):
+    frame.destroy()
+    temp = tk.Tk()
+    temp.title("GreenGame")
+    temp.resizable(False, False)
+    temp.geometry("800x600+560+240")
+
+    image = Image.open("background.jpg")
+    background_image = ImageTk.PhotoImage(image)
+
+    background_label = tk.Label(temp, image=background_image)
+    background_label.place(relwidth=1, relheight=1)
+
+    email_string = ctk.CTkLabel(temp, text="Email:", fg_color=("white", "gray75"), text_color="black",
+                                width=150)
+    login_string = ctk.CTkLabel(temp, text="Login:", fg_color=("white", "gray75"), text_color="black",
+                                width=150)
+    password_string = ctk.CTkLabel(temp, text="Hasło:", fg_color=("white", "gray75"),
+                                   text_color="black", width=150)
+    question_string = ctk.CTkLabel(temp, text="Pytanie:", fg_color=("white", "gray75"),
+                                   text_color="black", width=150)
+    answer_string = ctk.CTkLabel(temp, text="Odpowiedź:", fg_color=("white", "gray75"),
+                                 text_color="black",
+                                 width=150)
+
+    email_field = ctk.CTkEntry(temp, corner_radius=0, width=150)
+    login_field = ctk.CTkEntry(temp, corner_radius=0, width=150)
+    password_field = ctk.CTkEntry(temp, show="*", corner_radius=0, width=150)
+    questions_field = ctk.CTkComboBox(temp,
+                                      values=["Ulubione zwierze?", "Gdzie się urodziłes?", "Ulubiona Książka?"],
+                                      corner_radius=0, width=150)
+    answer_field = ctk.CTkEntry(temp, corner_radius=0, width=150)
+
+    register_button = ctk.CTkButton(temp, text="Zarejestruj",
+                                    command=lambda: register_in(email_field.get(), login_field.get(),
+                                                                password_field.get(), answer_field.get(),
+                                                                questions_field.get()), fg_color=("#60A060"),
+                                    hover_color=("#006400"), corner_radius=0, width=150)
+    back_button = ctk.CTkButton(temp, text="Powrót",
+                                command=lambda: main_login_window(temp), fg_color=("#60A060"),
+                                hover_color=("#006400"), corner_radius=0, width=150)
+
+    email_string.place(x=240, y=50)
+    login_string.place(x=240, y=100)
+    password_string.place(x=240, y=150)
+    question_string.place(x=240, y=200)
+    answer_string.place(x=240, y=250)
+
+    email_field.place(x=410, y=50)
+    login_field.place(x=410, y=100)
+    password_field.place(x=410, y=150)
+    questions_field.place(x=410, y=200)
+    answer_field.place(x=410, y=250)
+
+    register_button.place(x=240, y=300)
+
+    back_button.place(x=410, y=300)
+
+    temp.mainloop()
+
+
+def log_in(login, password, answer, frame):
+    global session
+    if session.counter >= 5:
+        messagebox.showwarning(title="Błąd", message="Za dużo prób.")
+    if not session.log_in(login, password, answer):
+        messagebox.showwarning(title="Błąd", message="Złe dane.")
+    if session.check_if_logged():
+        frame.destroy()
+        main_game_loop()
+
+
+def answer_log_in(login, password, answer):
+    global session
+    session = SessionController()
+    if login == "" or answer == "":
+        messagebox.showwarning(title="Błąd", message="Wprowadź dane.")
+    session.log_in(login, password, answer)
+
+
+def answer_login(frame):
+    frame.destroy()
+    temp = tk.Tk()
+    temp.title("GreenGame")
+    temp.resizable(False, False)
+    temp.geometry("800x600+560+240")
+
+    image = Image.open("background.jpg")
+    background_image = ImageTk.PhotoImage(image)
+
+    background_label = tk.Label(temp, image=background_image)
+    background_label.place(relwidth=1, relheight=1)
+
+    login_log = ctk.CTkLabel(temp, text="Login:", fg_color=("white", "gray75"),
+                             text_color="black", width=150)
+    answer_log = ctk.CTkLabel(temp, text="Odpowiedź:", fg_color=("white", "gray75"),
+                              text_color="black", width=150)
+
+    login_field_log = ctk.CTkEntry(temp, corner_radius=0, width=150)
+    answer_field_log = ctk.CTkEntry(temp, show="*", corner_radius=0, width=150)
+
+    login_button_log = ctk.CTkButton(temp, text="Logowanie",
+                                     command=lambda: answer_log_in(login_field_log.get(), "",
+                                                                   answer_field_log.get()), fg_color=("#60A060"),
+                                     hover_color=("#006400"), corner_radius=0, width=150)
+    back_button = ctk.CTkButton(temp, text="Powrót",
+                                command=lambda: main_login_window(temp), fg_color=("#60A060"),
+                                hover_color=("#006400"), corner_radius=0, width=150)
+
+    login_log.place(x=240, y=150)
+    answer_log.place(x=240, y=200)
+
+    login_field_log.place(x=410, y=150)
+    answer_field_log.place(x=410, y=200)
+
+    login_button_log.place(x=240, y=250)
+    back_button.place(x=410, y=250)
+
+    temp.mainloop()
+
+
+def main_login_window(frame):
+    if frame is not None:
+        frame.destroy()
+    root = tk.Tk()
+    root.title("GreenGame")
+    root.resizable(False, False)
+    root.geometry("800x600+560+240")
+
+    image = Image.open("background.jpg")
+    background_image = ImageTk.PhotoImage(image)
+
+    background_label = tk.Label(root, image=background_image)
+    background_label.place(relwidth=1, relheight=1)
+
+    login_log = ctk.CTkLabel(root, text="Login:", fg_color=("white", "gray75"),
+                             text_color="black", width=150, corner_radius=0)
+    password_log = ctk.CTkLabel(root, text="Hasło:", fg_color=("white", "gray75"),
+                                text_color="black", width=150, corner_radius=0)
+
+    login_field_log = ctk.CTkEntry(root, corner_radius=0, width=150)
+    password_field_log = ctk.CTkEntry(root, show="*", corner_radius=0, width=150)
+
+    login_button_log = ctk.CTkButton(root, text="Login",
+                                     command=lambda: log_in(login_field_log.get(), password_field_log.get(),
+                                                            "", root), fg_color=("#60A060"), hover_color=("#006400"),
+                                     corner_radius=0, width=150)
+
+    login_log.place(x=240, y=150)
+    password_log.place(x=240, y=200)
+
+    login_field_log.place(x=410, y=150)
+    password_field_log.place(x=410, y=200)
+
+    login_button_log.place(x=240, y=250)
+
+    register_button = ctk.CTkButton(root, text="Zarejestruj", command=lambda: register(root), fg_color=("#60A060"),
+                                    hover_color=("#006400"), corner_radius=0, width=150)
+
+    forgot_password_button = ctk.CTkButton(root, text="Zapomniałes hasła?", command=lambda: answer_login(root),
+                                           fg_color=("#60A060"),
+                                           hover_color=("#006400"), corner_radius=0, width=150)
+
+    register_button.place(x=410, y=250)
+
+    forgot_password_button.place(x=325, y=300)
+
+    global session
+    session = SessionController()
+    root.mainloop()
+
+    # session.close()
+
+
+def render_ranking(screen, ranking_data, font, current_user, daily_ranking):
+    # Define colors
+    green_color = (0, 128, 0)  # Green color for the background of the leaderboard
+    light_green = (144, 238, 144)  # Light green for alternating rows
+    dark_green = (0, 100, 0)  # Dark green for alternating rows
+    text_color = (255, 255, 255)  # White for text
+    highlight_color = (255, 215, 0)  # Gold color for highlighting the current user
+
+    # Define leaderboard size and position
+    leaderboard_x = 100  # X position of the leaderboard
+    leaderboard_y = 100  # Y position of the leaderboard
+    leaderboard_width = 600  # Width of the leaderboard
+    leaderboard_height = 50  # Height of each row in the leaderboard
+
+    # Draw the leaderboard background
+    pygame.draw.rect(screen, green_color,
+                     (leaderboard_x, leaderboard_y, leaderboard_width, len(ranking_data) * leaderboard_height))
+
+    # Loop through the ranking data and draw each row
+    for index, (username, points) in enumerate(ranking_data):
+        row_y = leaderboard_y + index * leaderboard_height  # Y position of the current row
+        row_color = light_green if index % 2 == 0 else dark_green  # Alternating row colors
+
+        # Draw the background for this row
+        pygame.draw.rect(screen, row_color, (leaderboard_x, row_y, leaderboard_width, leaderboard_height))
+
+        # Determine the text color
+        user_text_color = highlight_color if username == current_user.login else text_color
+
+        # Render the rank number, username, and points
+        rank_text = font.render(str(index + 1), True, user_text_color)  # Render the rank number
+        name_text = font.render(username, True, user_text_color)  # Render the username
+        points_text = font.render(str(points), True, user_text_color)  # Render the points
+
+        # Calculate x positions for rank, username, and points
+        rank_x = leaderboard_x + 20  # 20 pixels from the left edge of the leaderboard
+        name_x = leaderboard_x + 60  # 60 pixels from the left edge of the leaderboard
+        points_x = leaderboard_x + leaderboard_width - 100  # 100 pixels
+
+        # Draw the rank number, username, and points text on the screen
+        screen.blit(rank_text, (rank_x, row_y + leaderboard_height / 2 - rank_text.get_height() / 2))
+        screen.blit(name_text, (name_x, row_y + leaderboard_height / 2 - name_text.get_height() / 2))
+        screen.blit(points_text, (points_x, row_y + leaderboard_height / 2 - points_text.get_height() / 2))
+
+        # Draw a border around the leaderboard if desired
+        border_color = (255, 255, 255)  # White color for the border
+        border_rect = pygame.Rect(leaderboard_x, leaderboard_y, leaderboard_width,
+                                  len(ranking_data) * leaderboard_height)
+        pygame.draw.rect(screen, border_color, border_rect, 2)  # 2 is the thickness of the border
+
+
+def render_button(screen, font, text, rect, is_selected):
+    button_color = (100, 200, 100) if is_selected else (200, 200, 200)
+    pygame.draw.rect(screen, button_color, rect)
+    text_rendered = font.render(text, True, (0, 0, 0))
+    text_rect = text_rendered.get_rect(center=rect.center)
+    screen.blit(text_rendered, text_rect)
+
+
+def ranking(current_user):
+    global ranking_opened, daily_ranking, friends_ranking
+    daily_ranking = True  # Początkowo pokazuje ranking dzienny
+    friends_ranking = False  # Początkowo pokazuje ranking ogólny
+
+    if not ranking_opened:
+        print("Ranking")
+        ranking_opened = True
+
+        # Definicje przycisków
+        ranking_width, ranking_height = 800, 600
+        ranking_screen = pygame.display.set_mode((ranking_width, ranking_height))
+        pygame.display.set_caption("Ranking")
+
+        close_button_rect = pygame.Rect(ranking_width - 30, 10, 20, 20)
+        daily_button_rect = pygame.Rect(50, 10, 150, 40)
+        weekly_button_rect = pygame.Rect(210, 10, 150, 40)
+        general_button_rect = pygame.Rect(370, 10, 150, 40)  # Przycisk dla rankingu ogólnego
+        friends_button_rect = pygame.Rect(530, 10, 150, 40)  # Przycisk dla rankingu znajomych
+        font = pygame.font.SysFont(None, 24)
+
+        user_dao = UserDao()
+        user_list = user_dao.get_all()
+
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        # Wywołanie metody add_points z aktualną datą
+        success = user_dao.add_points(user_id=current_user.id, points=0, date=current_date, category_name='Quiz')
+
+        while ranking_opened:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    ranking_opened = False
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if close_button_rect.collidepoint(event.pos):
+                        ranking_opened = False
+                    elif daily_button_rect.collidepoint(event.pos):
+                        daily_ranking = True
+                    elif weekly_button_rect.collidepoint(event.pos):
+                        daily_ranking = False
+                    elif general_button_rect.collidepoint(event.pos):
+                        friends_ranking = False
+                    elif friends_button_rect.collidepoint(event.pos):
+                        friends_ranking = True
+
+            ranking_screen.fill((255, 255, 255))  # Biały tło
+
+            # Rysowanie przycisków
+            render_button(ranking_screen, font, "Ranking dzienny", daily_button_rect, daily_ranking)
+            render_button(ranking_screen, font, "Ranking tygodniowy", weekly_button_rect, not daily_ranking)
+            render_button(ranking_screen, font, "Ranking ogólny", general_button_rect, not friends_ranking)
+            render_button(ranking_screen, font, "Ranking znajomych", friends_button_rect, friends_ranking)
+            pygame.draw.rect(ranking_screen, (255, 0, 0), close_button_rect)  # Red button color
+
+            # Pobieranie i renderowanie danych rankingu
+            if friends_ranking:
+                ranking_data = user_dao.get_friends_ranking_data(current_user.id,
+                                                                 'daily' if daily_ranking else 'weekly')
+            else:
+                ranking_data = user_dao.get_ranking_data(user_list, 'daily' if daily_ranking else 'weekly')
+            render_ranking(ranking_screen, ranking_data, font, current_user, daily_ranking)
+
+            pygame.display.flip()
+
+        ranking_opened = False
+
+
+def settings():
+    pygame.time.delay(200)
+    font = pygame.font.SysFont("Yu Gothic UI", 30, bold=True)
+    global settings_opened
+    print(settings_opened)
+
+    if not settings_opened:
+        print("Settings")
+        settings_opened = True
+
+        # Create a new Pygame window for settings
+        settings_width, settings_height = 800, 600
+        settings_screen = pygame.display.set_mode((settings_width, settings_height))
+        pygame.display.set_caption("Settings")
+
+        button_background_color = (144, 238, 144)
+        dark_green = (0, 100, 0)
+        light_green = (96, 160, 96)
+
+        # Load background image
+        background_image = pygame.image.load("background.jpg")
+        background_image = pygame.transform.scale(background_image, (settings_width, settings_height))
+
+        # Load logo image
+        logo_image = pygame.image.load("logo.png")
+        logo_image = pygame.transform.scale(logo_image, (250, 250))
+        logo_rect = logo_image.get_rect(center=(settings_width // 2, settings_height // 5.5))
+
+        # Add a close button in the settings window
+        close_button_rect = pygame.Rect(settings_width - 30, 10, 20, 20)
+
+        def play_click_sound():
+            pygame.mixer.music.load("click_sound.wav")
+            pygame.mixer.music.play(0)
+
+        def create_button(text, position, command):
+            font = pygame.font.SysFont("Yu Gothic UI", 30, bold=True)
+            button_width, button_height = 300, 80
+            text_surface = font.render(text, True, (*dark_green, 200))  # Tekst w kolorze ciemnozielonym z alfa
+            button_rect = pygame.Rect(position[0] - button_width // 2, position[1] - button_height // 2, button_width,
+                                      button_height)
+            mouse_pos = pygame.mouse.get_pos()
+            mouse_clicked = pygame.mouse.get_pressed()[0]
+
+            # Rysowanie przycisku
+            if button_rect.collidepoint(mouse_pos):
+                pygame.draw.rect(settings_screen, (*light_green, 200), button_rect,
+                                 border_radius=10)  # Jasnozielony przy najechaniu
+                if mouse_clicked:
+                    command()
+            else:
+                pygame.draw.rect(settings_screen, (*button_background_color, 200), button_rect,
+                                 border_radius=10)  # Normalne tło
+
+            # Rysowanie tekstu na przycisku
+            text_rect = text_surface.get_rect(center=button_rect.center)
+            settings_screen.blit(text_surface, text_rect)
+            if button_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+                play_click_sound()
+                command()
+
+        # Main loop for the settings window
+        while settings_opened:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    settings_opened = False
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if close_button_rect.collidepoint(event.pos):
+                        settings_opened = False
+                        return  # Exit the function and return to the main menu
+
+            # Draw the background image
+            settings_screen.blit(background_image, (0, 0))
+
+            # Draw the logo
+            settings_screen.blit(logo_image, logo_rect)
+
+            # Draw the close button
+            pygame.draw.rect(settings_screen, (255, 0, 0), close_button_rect)  # Red button color
+
+            # Call create_button with all required arguments
+            create_button("Zmień hasło", (settings_width // 2, 2 * settings_height // 3 - 120), change_password_form)
+            create_button("Wyloguj", (settings_width // 2, 2 * settings_height // 3 - 20), log_out)
+            create_button("Usuń konto", (settings_width // 2, 2 * settings_height // 3 + 80), delete_user_form)
+            pygame.display.flip()
+
+
+# GRA SAMA W SOBIE
 
 def main_game_loop():
-
     pygame.init()
 
     width, height = 800, 600
@@ -261,7 +887,8 @@ def main_game_loop():
         if rect.collidepoint(pygame.mouse.get_pos()):
             pygame.draw.rect(button_surface, (*light_green, 200), (0, 0, button_width, button_height), border_radius=10)
         else:
-            pygame.draw.rect(button_surface, (*button_background_color, 200), (0, 0, button_width, button_height), border_radius=10)
+            pygame.draw.rect(button_surface, (*button_background_color, 200), (0, 0, button_width, button_height),
+                             border_radius=10)
         button_text = font.render(text, True, (*dark_green, 200))
         text_rect = button_text.get_rect(center=button_surface.get_rect().center)
         button_surface.blit(button_text, text_rect)
@@ -270,35 +897,30 @@ def main_game_loop():
             play_click_sound()
             command()
 
-
     def start_game():
         print("hello")
         subprocess.run(["python", "GameMain/main_board.py"])
         pygame.quit()
-
 
     def exit_game():
         print("Exit Game")
         pygame.quit()
         sys.exit()
 
-    def settings():
-        print("Settings")
-
     logo_image = pygame.image.load("logo.png")
     logo_image = pygame.transform.scale(logo_image, (250, 250))
     logo_rect = logo_image.get_rect(center=(width // 2, height // 5.5))
-    
 
-    example_users = session_controller.user_dao.get_friend_list(session_controller.session_user.id)
+    example_users = session.user_dao.get_friend_list(session.session_user.id)
     users_list = []
     for i in example_users:
-        users_list.append(session_controller.user_dao.get_by_id(i))
+        users_list.append(session.user_dao.get_by_id(i))
 
     FRIENDS_BUTTON_X = 10
     FRIENDS_BUTTON_Y = 50
     toggle_button = Button(FRIENDS_BUTTON_X, FRIENDS_BUTTON_Y, 140, 50, "Znajomi")
-    friend_list = FriendList(FRIENDS_BUTTON_X - 10, FRIENDS_BUTTON_Y + 50, 140, 500, users_list, session_controller.session_user.id)
+    friend_list = FriendList(FRIENDS_BUTTON_X - 10, FRIENDS_BUTTON_Y + 50, 140, 500, users_list,
+                             session.session_user.id)
 
     def handle_events(toggle_button, friend_list):
         for event in pygame.event.get():
@@ -316,6 +938,8 @@ def main_game_loop():
 
         buttons_data = [
             {"text": "Start gry", "position": (width // 2, 2 * height // 3 - 120), "command": start_game},
+            {"text": "Ranking", "position": (width // 1.23, 2 * height // 3 - 320),
+             "command": lambda: ranking(session.session_user)},
             {"text": "Ustawienia", "position": (width // 2, 2 * height // 3 - 20), "command": settings},
             {"text": "Wyjdź z gry", "position": (width // 2, 2 * height // 3 + 80), "command": exit_game},
         ]
@@ -330,70 +954,9 @@ def main_game_loop():
 
         handle_events(toggle_button, friend_list)
 
-def log_in_callback():
-    # Wywołanie metody logowania
-    session_controller.log_in(login_form_login_field.get(), login_form_password_field.get(), login_form_answer_field.get())
-
-    if session_controller.check_if_logged():
-        root.destroy()  # Zamknij okno Tkintera
-        main_game_loop()  # Uruchom pętlę gry w Pygame
-
-root = tk.Tk()
-root.title("GreenGame")
-root.resizable(False, False)
-
-email_string = ctk.CTkLabel(root, text="Email:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
-                            width=150)
-login_string = ctk.CTkLabel(root, text="Login:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
-                            width=150)
-password_string = ctk.CTkLabel(root, text="Password:", fg_color=("white", "gray75"), corner_radius=8,
-                               text_color="black", width=150)
-question_string = ctk.CTkLabel(root, text="Question:", fg_color=("white", "gray75"), corner_radius=8,
-                               text_color="black", width=150)
-answer_string = ctk.CTkLabel(root, text="Answer:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
-                             width=150)
-
-email_field = ctk.CTkEntry(root)
-login_field = ctk.CTkEntry(root)
-password_field = ctk.CTkEntry(root, show="*")
-questions_field = ctk.CTkComboBox(root, values=["What is your pet's name?", "Where you were born?", "Favourite book?"])
-answer_field = ctk.CTkEntry(root)
-
-login_form_login_string = ctk.CTkLabel(root, text="Login:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
-                            width=150)
-login_form_password_string = ctk.CTkLabel(root, text="Password:", fg_color=("white", "gray75"), corner_radius=8,
-                               text_color="black", width=150)
-login_form_answer_string = ctk.CTkLabel(root, text="Answer:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
-                             width=150)
-
-
-login_form_login_field = ctk.CTkEntry(root)
-login_form_password_field = ctk.CTkEntry(root, show="*")
-login_form_answer_field = ctk.CTkEntry(root)
-
-register_button = ctk.CTkButton(root, text="Register", command=lambda: session_controller.register(login_field.get(), password_field.get(), email_field.get(), answer_field.get(), questions_field.get()), fg_color=("#60A060"), hover_color=("#006400"))
-login_button = ctk.CTkButton(root, text="Already have an account? Log in", command=show_login_form, fg_color=("#60A060"), hover_color=("#006400"))
-
-login_form_login_button = ctk.CTkButton(root, text="Log in", command=log_in_callback,fg_color=("#60A060"), hover_color=("#006400"))
-
-email_string.grid(row=0, column=0, padx=10, pady=5, sticky="e")
-login_string.grid(row=1, column=0, padx=10, pady=5, sticky="e")
-password_string.grid(row=2, column=0, padx=10, pady=5, sticky="e")
-question_string.grid(row=3, column=0, padx=10, pady=5, sticky="e")
-answer_string.grid(row=4, column=0, padx=10, pady=5, sticky="e")
-
-email_field.grid(row=0, column=1, padx=10, pady=5)
-login_field.grid(row=1, column=1, padx=10, pady=5)
-password_field.grid(row=2, column=1, padx=10, pady=5)
-questions_field.grid(row=3, column=1, padx=10, pady=5)
-answer_field.grid(row=4, column=1, padx=10, pady=5)
-
-register_button.grid(row=5, column=0, pady=10, columnspan=3)
-login_button.grid(row=6, column=0, pady=10, columnspan=3)
 
 session = SessionController()
-root.mainloop()
+main_login_window(None)
 
-if session_controller.check_if_logged():
+if session.check_if_logged():
     main_game_loop()
-
