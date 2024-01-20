@@ -22,3 +22,4 @@ class MiniGame:
         elif self.minigameName == "Snake":
             game = SnakeGame()
         return game.run_game()
+
