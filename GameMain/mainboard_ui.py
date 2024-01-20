@@ -60,7 +60,6 @@ def init_printui(login):
         mglobals.PLAYER_NAME_DISPLAY.add(temp_p)
         mglobals.PLAYER_NAME_SPRITE[player] = temp_p
         temp = PRINTUI()
-        temp.image = mglobals.P1_IMG if player == login \
-            else mglobals.P2_IMG
+        temp.image = mglobals.P1_IMG
         mglobals.PLAYER_NAME_DISPLAY.add(temp)
         mglobals.CURRENTPLAYER_IMG[player] = temp

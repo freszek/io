@@ -351,16 +351,6 @@ def display_rules():
     pygame.quit()
     quit()
 
-# def start_game_on_board():
-#     mglobals.init()
-#     display_rules()
-#     player_selector = player.PlayerAvatar(mglobals.DISPLAY_W, mglobals.DISPLAY_H, 6)
-#     selected_player_avatar = player_selector.choose_player()
-#     mglobals.P1_IMG = pygame.image.load(selected_player_avatar)
-#     mglobals.P2_IMG = pygame.image.load('GameMain/pics/p2.png')
-#
-#     round.round_loop()
-
 settings_opened = False  
 ranking_opened = False
 
@@ -884,7 +874,7 @@ def main_game_loop():
 
 
     def start_game():
-        subprocess.run(["python", "GameMain/main_board.py", str(session.session_user.login)])
+        subprocess.run(["python", "GameMain/player_options.py", str(session.session_user.login)])
         pygame.quit()
 
 

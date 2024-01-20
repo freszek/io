@@ -80,5 +80,15 @@ class BoardDao:
 
         return players
 
+    def update_avatar_image(self, user_login, new_avatar_img):
+        query = 'UPDATE board SET avatar_img = ? WHERE user_login = ?'
+        try:
+            self.conn.execute(query, (new_avatar_img, user_login))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error updating avatar image: {e}")
+            return False
+
     def close(self):
         self.conn.close()

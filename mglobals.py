@@ -59,7 +59,6 @@ GD = None
 CLK = None
 BACK_IMG = None
 P1_IMG = None
-P2_IMG = None
 P_INFO_CLRSCR = None
 MSG_CLRSCR = None
 MSG_SCR = None
@@ -83,7 +82,7 @@ INDEX_PROPPIC_MAP = {}
 
 
 def load_imgs():
-    global BACK_IMG, P1_IMG, P2_IMG, P_INFO_CLRSCR, MSG_CLRSCR
+    global BACK_IMG, P1_IMG, P_INFO_CLRSCR, MSG_CLRSCR
     BACK_IMG = pygame.image.load('GameMain/pics/board.jpg')
     BACK_IMG = pygame.transform.scale(BACK_IMG, (DISPLAY_W - 400, DISPLAY_H))
     P_INFO_CLRSCR = pygame.Surface([380, 380])
@@ -92,10 +91,6 @@ def load_imgs():
 def init_pygame():
     global GD, CLK
     pygame.init()
-    # Can adjust game to screen size
-    # global DISPLAY_H, DISPLAY_W
-    # screen_info = pygame.display.Info()
-    # DISPLAY_W, DISPLAY_H = screen_info.current_w, screen_info.current_h
     GD = pygame.display.set_mode((DISPLAY_W, DISPLAY_H))
     pygame.display.set_caption('Green Game')
     CLK = pygame.time.Clock()

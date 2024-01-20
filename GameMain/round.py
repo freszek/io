@@ -17,14 +17,12 @@ def round_loop(login):
     utils.draw_board()
     dao = BoardDao()
     num_of_players = dao.get_user_count()
-    current_p_p = dao.get_board_entry_by_user_login(login)['board_position']
     player_data = dao.get_all_players()
-    # P1 = Player(login, current_p_p)
-    # P2 = Player(mglobals.PLAYER_TWO, 0)
 
     players = []
     for i in range(0, num_of_players):
-        player = Player(player_data[i]['user_login'], player_data[i]['board_position'])
+        player = Player(player_data[i]['user_login'],
+                        player_data[i]['board_position'], player_data[i]['avatar_img'])
         players.append(player)
         mglobals.PLAYER_OBJ[player_data[i]['user_login']] = players[i]
         players[i].pm.set_starting_position()
@@ -35,7 +33,7 @@ def round_loop(login):
     mglobals.PLAYER_NAME_SPRITE[currentplayer.player_name].set_x_y(350, 120)
     mglobals.CURRENTPLAYER_IMG[currentplayer.player_name].set_x_y(480, 115)
 
-    can_roll, double = True, False
+    can_roll = True
 
     while True:
         for event in pygame.event.get():
@@ -50,7 +48,9 @@ def round_loop(login):
                     val = roll()
                     dao.update_player_position(login, currentplayer.pm.position + val)
                     currentplayer.pm.advance(val)
-                #   otherplayer.pm.render()
+                    for player in players:
+                        if player.player_name != login:
+                            player.pm.render()
                     can_roll = False
 
                 # Next player move

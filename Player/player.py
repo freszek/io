@@ -163,9 +163,7 @@ class PlayerSelection:
         self.render()
 
     def set_starting_position(self):
-        self.reposition()
-        self.render()
-        utils.draw_board()
+        # self.reposition()
         self.render()
     def render(self):
         pygame.draw.rect(mglobals.GD, mglobals.color_map[self.color],
@@ -183,12 +181,10 @@ class Player:
     RECT_WIDTH = 65
     SQ_HEIGHT_WIDTH = 106
 
-    def __init__(self, player_name, initial_position):
+    def __init__(self, player_name, initial_position, player_img):
         self.player_name = player_name
         self.color = mglobals.PLAYER_ONE_COLOR \
             if self.player_name == player_name \
             else mglobals.PLAYER_TWO_COLOR
         self.ps = PlayerSelection(self.color, initial_position)
-        self.pm = PlayerMovement(self.player_name, mglobals.P1_IMG, initial_position) \
-            if self.player_name == player_name \
-            else PlayerMovement(self.player_name, mglobals.P2_IMG, initial_position)
+        self.pm = PlayerMovement(self.player_name, pygame.image.load(player_img), initial_position)
