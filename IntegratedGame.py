@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import mglobals
-from game_rules import GameRulesApp
-from player_avatar import PlayerAvatar
+from GameMain import game_rules
+from Player import player
 import hashlib
 import sqlite3
 from typing import List
@@ -333,7 +333,7 @@ session = SessionController()
 
 def display_rules():
     # showing game rules
-    app = GameRulesApp()
+    app = game_rules.GameRulesApp()
     app.run()
 
     round.round_loop()
@@ -343,7 +343,7 @@ def display_rules():
 def start_game_on_board():
     mglobals.init()
     display_rules()
-    player_selector = PlayerAvatar(mglobals.DISPLAY_W, mglobals.DISPLAY_H, 6)
+    player_selector = player.PlayerAvatar(mglobals.DISPLAY_W, mglobals.DISPLAY_H, 6)
     selected_player_avatar = player_selector.choose_player()
     mglobals.P1_IMG = pygame.image.load(selected_player_avatar)
     mglobals.P2_IMG = pygame.image.load('GameMain/pics/p2.png')
