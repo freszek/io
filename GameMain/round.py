@@ -4,23 +4,28 @@ from GameMain import mainboard_ui
 import mglobals
 import utils
 from Player.player import Player
+from BoardDao import BoardDao
 
 def roll():
     val = mglobals.DICEOBJ.roll_dice()
     return val
-def round_loop():
+
+def round_loop(login):
 
     mainboard_ui.init_dice()
-    mainboard_ui.init_printui()
+    mainboard_ui.init_printui(login)
     utils.draw_board()
-    P1 = Player(mglobals.PLAYER_ONE)
-    P2 = Player(mglobals.PLAYER_TWO)
+    dao = BoardDao()
+    dao.get_board_entry_by_user_login(login)
+    position = dao.get_board_entry_by_user_login(login)['board_position']
+    P1 = Player(login, position)
+    P2 = Player(mglobals.PLAYER_TWO,0)
 
-    mglobals.PLAYER_OBJ[mglobals.PLAYER_ONE] = P1
+    mglobals.PLAYER_OBJ[login] = P1
     mglobals.PLAYER_OBJ[mglobals.PLAYER_TWO] = P2
 
 # Setting players on start
-    P1.pm.render()
+    P1.pm.set_starting_position()
     P2.pm.render()
 
 # Setting player info box
@@ -41,6 +46,7 @@ def round_loop():
                     mglobals.DICEOBJ.hide()
                     currentplayer.ps.hide()
                     val = roll()
+                    dao.update_player_position(login, currentplayer.pm.position + val)
                     currentplayer.pm.advance(val)
                     otherplayer.pm.render()
                     can_roll = False

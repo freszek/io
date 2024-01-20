@@ -64,9 +64,3 @@ class PlayerAvatar:
             self.selected_player_rect.x = self.selected_player * 140 + 50
 
             pygame.display.flip()
-
-    def getPlayerID(self):
-        pass
-
-    def addPoints(self):
-        pass

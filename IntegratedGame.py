@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import mglobals
 from GameMain import game_rules
+from GameMain.BoardDao import BoardDao
 from Player import player
 import hashlib
 import sqlite3
@@ -25,7 +26,7 @@ class User:
         self.is_logged = 0
         self.answer = answer
         self.question = question
-        
+
 class Points:
     def __init__(self, value, date, category):
         self.value = value
@@ -258,6 +259,7 @@ class SessionController:
     def __init__(self):
         self.session_user = None
         self.user_dao = UserDao()
+        self.board_dao = BoardDao()
         self.counter = 0
 
     def register(self, login, password, email, answer, question):
@@ -268,6 +270,7 @@ class SessionController:
         user = User(0, login, password, email, question, answer)
         self.session_user = user
         self.user_dao.create_user(user)
+        self.create_board_table_in_DB()
         print(f"ZAREJESTROWANY {login}")
 
     def check_login(self, login: str) -> bool:
@@ -294,9 +297,17 @@ class SessionController:
                 print("ZALOGOWANY")
                 self.session_user = self.user_dao.get_by_login(login)
                 self.session_user.is_logged = True
+                print(self.session_user.id)
                 return True
         print("Niezalogowany")
         return False
+
+    def create_board_table_in_DB(self) -> bool:
+        self.board_dao.add_board_entry(
+                user_login=self.session_user.login,
+                board_position=0,
+                avatar_img=None
+            )
 
     def check_if_logged(self) -> bool:
         return self.session_user.is_logged
@@ -340,15 +351,15 @@ def display_rules():
     pygame.quit()
     quit()
 
-def start_game_on_board():
-    mglobals.init()
-    display_rules()
-    player_selector = player.PlayerAvatar(mglobals.DISPLAY_W, mglobals.DISPLAY_H, 6)
-    selected_player_avatar = player_selector.choose_player()
-    mglobals.P1_IMG = pygame.image.load(selected_player_avatar)
-    mglobals.P2_IMG = pygame.image.load('GameMain/pics/p2.png')
-
-    round.round_loop()
+# def start_game_on_board():
+#     mglobals.init()
+#     display_rules()
+#     player_selector = player.PlayerAvatar(mglobals.DISPLAY_W, mglobals.DISPLAY_H, 6)
+#     selected_player_avatar = player_selector.choose_player()
+#     mglobals.P1_IMG = pygame.image.load(selected_player_avatar)
+#     mglobals.P2_IMG = pygame.image.load('GameMain/pics/p2.png')
+#
+#     round.round_loop()
 
 settings_opened = False  
 ranking_opened = False
@@ -405,8 +416,6 @@ def log_out():
     session.close()
     pygame.quit()
     main_login_window(None)
-    
-    
 
 def delete_user_form():
     def confirm_delete_user(frame):
@@ -622,9 +631,6 @@ def main_login_window(frame):
     root.mainloop()
 
     #session.close()
-
-
-
 
 def render_ranking(screen, ranking_data, font, current_user, daily_ranking):
     # Define colors
@@ -878,8 +884,7 @@ def main_game_loop():
 
 
     def start_game():
-        print("hello")
-        subprocess.run(["python", "GameMain/main_board.py"])
+        subprocess.run(["python", "GameMain/main_board.py", str(session.session_user.login)])
         pygame.quit()
 
 

@@ -26,7 +26,6 @@ GREEN = (0, 255, 0)
 SEA_GREEN = (46, 139, 87)
 GRAY = (169, 169, 169)
 
-PLAYER_ONE = 'Player 1'
 PLAYER_TWO = 'Player 2'
 
 PLAYER_ONE_COLOR = 'royal_blue'
