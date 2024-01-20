@@ -60,7 +60,8 @@ class DatabaseManager:
         self.connection.commit()
 
     def get_statistics(self, player_id):
-        self.cursor.execute("SELECT * FROM statistics WHERE player_id = ?", (player_id,))
+        self.cursor.execute("SELECT player_id, event_id, score, completion_time, level FROM statistics "
+                            "WHERE player_id = ?", (player_id,))
         return self.cursor.fetchall()
 
     def get_player_achievements(self, player_id):
@@ -131,9 +132,9 @@ class DatabaseManager:
     def all_correct(self, player_id):
         arr = self.get_statistics(player_id)
         for row in arr:
-            if (row[3] == 6.0 and row[-1] == "HARD" or
-                    row[3] == 4.0 and row[-1] == "MEDIUM" or
-                    row[3] == 2.0 and row[-1] == "EASY"):
+            if (row[2] == 6.0 and row[-1] == "HARD" or
+                    row[2] == 4.0 and row[-1] == "MEDIUM" or
+                    row[2] == 2.0 and row[-1] == "EASY"):
                 return True
         return False
 

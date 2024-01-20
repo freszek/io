@@ -30,7 +30,7 @@ class PlayerMovement:
 
     def choose_mini_game(self):
         random_number = random.randint(0, 3)
-        return self.game_list[0]
+        return self.game_list[random_number]
 
     def advance(self, count):
         currentplayer = mglobals.PLAYER_OBJ[self.player_name]

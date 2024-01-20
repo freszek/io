@@ -623,6 +623,51 @@ def main_login_window(frame):
 
     # session.close()
 
+def render_stats_table(screen, font, users):
+    from database_setup import db
+    statistics_data = []
+    for el in users:
+        statistics_data.extend(db.get_statistics(el.id))  # Extend instead of append to flatten the list
+    # Define colors
+    table_color = (200, 200, 200)
+    text_color = (0, 0, 0)
+
+    # Define table size and position
+    table_x = 50
+    table_y = 110
+    table_width = 700
+    table_height = 400
+    row_height = 50
+
+    # Define column widths
+    col_widths = [200, 300, 50, 50, 100]
+
+    # Draw the table background
+    pygame.draw.rect(screen, table_color, (table_x, table_y, table_width, table_height))
+
+    # Render table headers
+    headers = ["Nazwa gracza", "Nazwa eventu", "Wynik", "Czas", "Poziom"]
+    for i, (header, width) in enumerate(zip(headers, col_widths)):
+        header_rect = pygame.Rect(table_x + sum(col_widths[:i]), table_y, width, row_height)
+        pygame.draw.rect(screen, (100, 100, 100), header_rect)
+        header_text = font.render(header, True, text_color)
+        text_rect = header_text.get_rect(center=header_rect.center)
+        screen.blit(header_text, text_rect)
+    for i, stat_entry in enumerate(statistics_data):
+        for j, data_point in enumerate(stat_entry):
+            col_rect = pygame.Rect(table_x + sum(col_widths[:j]), table_y + (i + 1) * row_height,
+                                   col_widths[j], row_height)
+            pygame.draw.rect(screen, (255, 255, 255), col_rect)
+            get_user = lambda ids: next((user.login for user in users if ids == user.id), "")
+            if j == 0:
+                text = font.render(str(get_user(data_point)), True, text_color)
+            elif j == 1:
+                text = font.render(str(db.get_event(data_point)[1]), True, text_color)
+            else:
+                text = font.render(str(data_point), True, text_color)
+            text_rect = text.get_rect(center=col_rect.center)
+            screen.blit(text, text_rect)
+
 
 def render_ranking(screen, ranking_data, font, current_user, daily_ranking):
     # Define colors
@@ -684,15 +729,17 @@ def render_button(screen, font, text, rect, is_selected):
 
 
 def ranking(current_user):
-    global ranking_opened, daily_ranking, friends_ranking
-    daily_ranking = True  # Początkowo pokazuje ranking dzienny
-    friends_ranking = False  # Początkowo pokazuje ranking ogólny
+    global ranking_opened, daily_ranking, friends_ranking, statistics_opened, achievements_opened
+    daily_ranking = True  # Initially shows the daily ranking
+    friends_ranking = False  # Initially shows the general ranking
+    statistics_opened = False
+    achievements_opened = False
 
     if not ranking_opened:
         print("Ranking")
         ranking_opened = True
 
-        # Definicje przycisków
+        # Definitions of buttons
         ranking_width, ranking_height = 800, 600
         ranking_screen = pygame.display.set_mode((ranking_width, ranking_height))
         pygame.display.set_caption("Ranking")
@@ -702,13 +749,14 @@ def ranking(current_user):
         weekly_button_rect = pygame.Rect(210, 10, 150, 40)
         general_button_rect = pygame.Rect(370, 10, 150, 40)  # Przycisk dla rankingu ogólnego
         friends_button_rect = pygame.Rect(530, 10, 150, 40)  # Przycisk dla rankingu znajomych
+        statistics_button_rect = pygame.Rect(50, 60, 150, 40)  # Add Statistics button
+        achievements_button_rect = pygame.Rect(210, 60, 150, 40)  # Add Achievements button
         font = pygame.font.SysFont(None, 24)
 
         user_dao = UserDao()
         user_list = user_dao.get_all()
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        # Wywołanie metody add_points z aktualną datą
         success = user_dao.add_points(user_id=current_user.id, points=10, date=current_date, category_name='Quiz')
 
         while ranking_opened:
@@ -726,23 +774,30 @@ def ranking(current_user):
                         friends_ranking = False
                     elif friends_button_rect.collidepoint(event.pos):
                         friends_ranking = True
+                    elif statistics_button_rect.collidepoint(event.pos):
+                        statistics_opened = True
+                    elif achievements_button_rect.collidepoint(event.pos):
+                        achievements_opened = True
 
-            ranking_screen.fill((255, 255, 255))  # Biały tło
+            ranking_screen.fill((255, 255, 255))
 
-            # Rysowanie przycisków
             render_button(ranking_screen, font, "Ranking dzienny", daily_button_rect, daily_ranking)
             render_button(ranking_screen, font, "Ranking tygodniowy", weekly_button_rect, not daily_ranking)
             render_button(ranking_screen, font, "Ranking ogólny", general_button_rect, not friends_ranking)
             render_button(ranking_screen, font, "Ranking znajomych", friends_button_rect, friends_ranking)
-            pygame.draw.rect(ranking_screen, (255, 0, 0), close_button_rect)  # Red button color
+            render_button(ranking_screen, font, "Statystyki", statistics_button_rect, statistics_opened)
+            render_button(ranking_screen, font, "Osiągnięcia", achievements_button_rect, achievements_opened)
+            pygame.draw.rect(ranking_screen, (255, 0, 0), close_button_rect)
 
-            # Pobieranie i renderowanie danych rankingu
             if friends_ranking:
                 ranking_data = user_dao.get_friends_ranking_data(current_user.id,
                                                                  'daily' if daily_ranking else 'weekly')
             else:
                 ranking_data = user_dao.get_ranking_data(user_list, 'daily' if daily_ranking else 'weekly')
             render_ranking(ranking_screen, ranking_data, font, current_user, daily_ranking)
+
+            if statistics_opened:
+                render_stats_table(ranking_screen, font, user_list)
 
             pygame.display.flip()
 
