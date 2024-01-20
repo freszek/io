@@ -1,11 +1,16 @@
 import random
+import sys
+from datetime import datetime
 
 import pygame
+import mglobals
 
 from GameMain import utils
-import mglobals
 from MiniGameManager.mini_game import MiniGame
+from UserDao import UserDao
 from mainEvents import game
+
+
 
 
 class PlayerMovement:
@@ -15,9 +20,10 @@ class PlayerMovement:
     PIMG_WIDTH = 60
     PIMG_HEIGHT = 40
 
-    def __init__(self, player_name, player_img, position):
+    def __init__(self, player_name, player_img, position, player_id):
         self.position = position
         self.player_name = player_name
+        self.player_id = player_id
         self.player_img = player_img
         self.result = 0
         self.x, self.y = 720, 730
@@ -28,6 +34,7 @@ class PlayerMovement:
         game5 = MiniGame(5, "DoorGame", 30, 5)
         self.game_list = [game1, game2, game3, game4, game5]
         self.result_game = 0
+        self.game_mini = None
 
 
     def choose_mini_game(self):
@@ -47,9 +54,16 @@ class PlayerMovement:
 # =============================================================================
         self.result_game = 0
         if self.position != 0:
+            self.game_mini = self.choose_mini_game()
             while self.result_game < 5:
-                self.result_game = self.choose_mini_game().startMinigame()
+                self.result_game = self.game_mini.startMinigame()
         self.result += self.result_game
+
+        user_dao = UserDao()
+
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        # Wywołanie metody add_points z aktualną datą
+        user_dao.add_points(user_id=self.player_id, points=self.result_game, date=current_date, category_name=self.game_mini.minigameName)
 # =============================================================================
         utils.draw_board()
         self.render()
@@ -167,6 +181,7 @@ class PlayerSelection:
         self.render()
         utils.draw_board()
         self.render()
+
     def render(self):
         pygame.draw.rect(mglobals.GD, mglobals.color_map[self.color],
                          [self.x, self.y, self.cw, self.ch],
@@ -183,12 +198,12 @@ class Player:
     RECT_WIDTH = 65
     SQ_HEIGHT_WIDTH = 106
 
-    def __init__(self, player_name, initial_position):
+    def __init__(self, player_name, initial_position, player_id):
         self.player_name = player_name
         self.color = mglobals.PLAYER_ONE_COLOR \
             if self.player_name == player_name \
             else mglobals.PLAYER_TWO_COLOR
         self.ps = PlayerSelection(self.color, initial_position)
-        self.pm = PlayerMovement(self.player_name, mglobals.P1_IMG, initial_position) \
+        self.pm = PlayerMovement(self.player_name, mglobals.P1_IMG, initial_position, player_id) \
             if self.player_name == player_name \
-            else PlayerMovement(self.player_name, mglobals.P2_IMG, initial_position)
+            else PlayerMovement(self.player_name, mglobals.P2_IMG, initial_position, player_id)

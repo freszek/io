@@ -10,7 +10,7 @@ def roll():
     val = mglobals.DICEOBJ.roll_dice()
     return val
 
-def round_loop(login):
+def round_loop(login, user_id):
 
     mainboard_ui.init_dice()
     mainboard_ui.init_printui(login)
@@ -24,7 +24,7 @@ def round_loop(login):
 
     players = []
     for i in range(0, num_of_players):
-        player = Player(player_data[i]['user_login'], player_data[i]['board_position'])
+        player = Player(player_data[i]['user_login'], player_data[i]['board_position'], player_data[i]['id'])
         players.append(player)
         mglobals.PLAYER_OBJ[player_data[i]['user_login']] = players[i]
         players[i].pm.set_starting_position()
