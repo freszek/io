@@ -4,14 +4,15 @@ from database_setup import db
 
 
 class StatsWindow:
-    def __init__(self):
+    def __init__(self, stats):
+        self.player_id = stats[0]
         self.stats_frame = None
-        self.player_stats = None
+        self.player_stats = stats[1]
         self.root = tk.Tk()
         self.root.title("Statystyki gracza")
-        self.root.geometry("500x400")
+        self.root.geometry("900x400")
         self.root.resizable(False, True)
-        self.root.configure(background="lightblue")
+        self.root.configure(background="#c1ffc1")
         self.player_name_combobox = None
 
         self.create_widgets()
@@ -19,12 +20,12 @@ class StatsWindow:
         self.root.mainloop()
 
     def create_widgets(self):
-        player_name_label = tk.Label(self.root, text="Wybierz gracza:", font=("Arial", 15, "bold"), bg="lightblue")
+        player_name_label = tk.Label(self.root, text="Statystyki", font=("Arial", 15, "bold"), bg="#c1ffc1")
         player_name_label.pack(pady=10)
 
         player_names = db.get_all_player_names()
         self.player_name_combobox = ttk.Combobox(self.root, values=player_names, font=("Arial", 15),
-                                                state="readonly", background="lightgreen")
+                                                 state="readonly", background="lightgreen")
         self.player_name_combobox.set("Wybierz gracza")
         self.player_name_combobox.pack(pady=10)
 
@@ -33,62 +34,63 @@ class StatsWindow:
         search_button.pack(pady=10)
 
         style = ttk.Style()
-        style.configure("Stats.TFrame", background="lightblue")
+        style.configure("Stats.TFrame", background="#c1ffc1")
         style.configure("Stats.TButton", font=("Arial", 12, "bold"))
 
         self.stats_frame = ttk.Frame(self.root, style="Stats.TFrame")
         self.stats_frame.pack(pady=10)
 
     def search_statistics(self):
+        self.clear_labels()
         player_name = self.player_name_combobox.get()
         if player_name and player_name != "Wybierz gracza":
-            player_id = db.get_player_id(player_name)
-            if player_id != -1:
-                self.show_statistics(player_id)
-            else:
-                messagebox.showwarning("Błąd!", "Nie ma takiego gracza!")
+            if db.get_player_id(player_name) == self.player_id:
+                self.show_statistics()
         else:
-            messagebox.showwarning("Błąd!", "Wybierz gracza!")
+            ttk.Label(self.stats_frame, text="Wybierz gracza!", font=("Arial", 15, "bold"), background="#c1ffc1",
+                      foreground="black").grid(row=0, column=1, padx=10, pady=5, sticky="w")
 
-    def show_statistics(self, player_id):
-        self.player_stats = db.get_statistics(player_id)
-        if self.player_stats:
-            for widget in self.stats_frame.winfo_children():
-                widget.destroy()
+    def clear_labels(self):
+        for widget in self.stats_frame.winfo_children():
+            widget.destroy()
 
-            (ttk.Label(self.stats_frame, text="Wynik", font=("Arial", 15, "bold"), background="lightblue")
-             .grid(row=0, column=0, padx=10, pady=5, sticky="w"))
-            (ttk.Label(self.stats_frame, text="Czas", font=("Arial", 15, "bold"), background="lightblue")
-             .grid(row=0, column=1, padx=10, pady=5, sticky="w"))
-            (ttk.Label(self.stats_frame, text="Poziom", font=("Arial", 15, "bold"), background="lightblue")
-             .grid(row=0, column=2, padx=10, pady=5, sticky="w"))
+    def show_statistics(self):
+        if len(self.player_stats) != 0:
+            ttk.Label(self.stats_frame, text="Wynik",
+                      font=("Arial", 15, "bold"),
+                      background="#c1ffc1").grid(row=0, column=0, padx=10, pady=5, sticky="w")
+            ttk.Label(self.stats_frame, text="Czas",
+                      font=("Arial", 15, "bold"),
+                      background="#c1ffc1").grid(row=0, column=1, padx=10, pady=5, sticky="w")
+            ttk.Label(self.stats_frame, text="Poziom",
+                      font=("Arial", 15, "bold"),
+                      background="#c1ffc1").grid(row=0, column=2, padx=10, pady=5, sticky="w")
 
             labels = []
             for i, stats in enumerate(self.player_stats):
-                label_wynik = ttk.Label(self.stats_frame, text=str(stats[-3]), font=("Arial", 12),
-                                        background="lightblue")
-                label_wynik.grid(row=i + 1, column=0, padx=10, pady=5, sticky="w")
-                labels.append(label_wynik)
+                l_wynik = ttk.Label(self.stats_frame, text=str(stats[-3]), font=("Arial", 12), background="#c1ffc1")
+                l_wynik.grid(row=i + 1, column=0, padx=10, pady=5, sticky="w")
+                labels.append(l_wynik)
 
-                label_czas = ttk.Label(self.stats_frame, text=str(stats[-2]), font=("Arial", 12),
-                                       background="lightblue")
-                label_czas.grid(row=i + 1, column=1, padx=10, pady=5, sticky="w")
-                labels.append(label_czas)
+                l_czas = ttk.Label(self.stats_frame, text=str(stats[-2]), font=("Arial", 12), background="#c1ffc1")
+                l_czas.grid(row=i + 1, column=1, padx=10, pady=5, sticky="w")
+                labels.append(l_czas)
 
-                label_poziom = ttk.Label(self.stats_frame, text=str(stats[-1]), font=("Arial", 12),
-                                         background="lightblue")
-                label_poziom.grid(row=i + 1, column=2, padx=10, pady=5, sticky="w")
-                labels.append(label_poziom)
+                l_poziom = ttk.Label(self.stats_frame, text=str(stats[-1]), font=("Arial", 12), background="#c1ffc1")
+                l_poziom.grid(row=i + 1, column=2, padx=10, pady=5, sticky="w")
+                labels.append(l_poziom)
 
-            last_row = len(self.player_stats)
-            ttk.Button(self.stats_frame, text="Sortuj po wyniku", style="Stats.TButton",
-                       command=lambda: self.sort_statistics(0, labels)).grid(row=last_row + 1, column=0, pady=5)
-            ttk.Button(self.stats_frame, text="Sortuj po czasie", style="Stats.TButton",
-                       command=lambda: self.sort_statistics(1, labels)).grid(row=last_row + 1, column=1, pady=5)
-            ttk.Button(self.stats_frame, text="Sortuj po poziomie", style="Stats.TButton",
-                       command=lambda: self.sort_statistics(2, labels)).grid(row=last_row + 1, column=2, pady=5)
+            if len(self.player_stats) > 0:
+                last = len(self.player_stats)
+                ttk.Button(self.stats_frame, text="Sortuj po wyniku", style="Stats.TButton",
+                           command=lambda: self.sort_statistics(0, labels)).grid(row=last + 1, column=0, pady=5)
+                ttk.Button(self.stats_frame, text="Sortuj po czasie", style="Stats.TButton",
+                           command=lambda: self.sort_statistics(1, labels)).grid(row=last + 1, column=1, pady=5)
+                ttk.Button(self.stats_frame, text="Sortuj po poziomie", style="Stats.TButton",
+                           command=lambda: self.sort_statistics(2, labels)).grid(row=last + 1, column=2, pady=5)
         else:
-            messagebox.showinfo("Brak statystyk", "Nie brałeś udziału w żadnym wydarzeniu!")
+            ttk.Label(self.stats_frame, text="Nie brałeś udziału w żadnym wydarzeniu!", font=("Arial", 15, "bold"),
+                      background="#c1ffc1", foreground="black").grid(row=0, column=1, padx=10, pady=5, sticky="w")
 
     def sort_statistics(self, specific, labels):
         level_order = {"EASY": 0, "MEDIUM": 1, "HARD": 2}

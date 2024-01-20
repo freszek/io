@@ -8,11 +8,11 @@ class EventInterface(ABC, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def end_event(self):
+    def end_event(self, player_id):
         pass
 
     @abstractmethod
-    def can_player_join(self):
+    def can_player_join(self, player_id):
         pass
 
     @abstractmethod

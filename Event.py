@@ -7,59 +7,70 @@ import time
 
 class Event(EventInterface):
     def __init__(self, event_id, name):
-        self.__event_id = event_id
-        self.__name = name
-        self.__level = DifficultyLevel.EASY
-        self.__questions = []
-        self.__score = 0
-        self.__time = 0
+        self.event_id = event_id
+        self.name = name
+        self.level = DifficultyLevel.EASY
+        self.questions = []
+        self.score = 0
+        self.start_time = 0
 
     def __str__(self):
-        return "Event ID: " + str(self.__event_id) + "\n" + \
-            "Name: " + self.__name + "\n" + \
-            "Level: " + str(self.__level) + "\n"
+        return "Event ID: " + str(self.event_id) + "\n" + \
+            "Name: " + self.name + "\n" + \
+            "Level: " + str(self.level) + "\n"
 
     def get_score(self):
-        return self.__score
+        return self.score
 
     def get_event_id(self):
-        return self.__event_id
+        return self.event_id
 
     def get_name(self):
-        return self.__name
+        return self.name
 
     def get_level(self):
-        return self.__level
+        return self.level
 
     def set_level(self, level):
         if not isinstance(level, DifficultyLevel):
             raise TypeError("Level must be of type DifficultyLevel")
-        self.__level = level
+        self.level = level
 
     def get_questions(self):
-        return self.__questions
+        return self.questions
 
     def start_event(self):
-        self.__time = time.perf_counter()
-        qu = db.get_questions(self.__event_id, to_string(self.__level))
-        self.__questions = qu
+        qu = db.get_questions(self.event_id, to_string(self.level))
+        self.questions = qu
 
-    def end_event(self):  # TODO: wziąć id gracza zamiast 0, ale to scenariusz ma dac metode
-        # TODO: zapis punktów do rankingu
-        db.save_statistics(self.__event_id, 0, self.__score,
-                           round(time.perf_counter() - self.__time, 3), to_string(self.__level))
-        db.set_achievements(0)
-        self.__time = 0
-        self.__questions = []
-        self.__score = 0
+    def end_event(self, player_id, time_elapsed=None):
+        if time_elapsed is not None:
+            db.save_statistics(self.event_id, player_id, self.score, time_elapsed, to_string(self.level))
+        else:
+            db.save_statistics(self.event_id, player_id, self.score,
+                               round(time.perf_counter() - self.start_time, 3), to_string(self.level))
+        stats = [[self.event_id, player_id, self.score, round(time.perf_counter() - self.start_time, 3),
+                 to_string(self.level)]]
+        achievements = db.get_session_achievements(player_id)
+        db.set_achievements(player_id)
+        self.start_time = 0
+        self.questions = []
+        self.score = 0
+        return player_id, stats, achievements
 
-    def can_player_join(self):  # TODO: wziąć liczbę dotychczasowych punktów gracza od scenariusza metoda
-        return True
+    def can_player_join(self, player_id):
+        if db.is_legend(player_id):
+            return -2
+        proportion = db.check_points(player_id, self.event_id)
+        for row in proportion:
+            if row[0] >= 0.9:
+                return -1
+        return 0
 
     def calculate_score(self):
-        if self.__level == DifficultyLevel.EASY:
-            self.__score += 1
-        elif self.__level == DifficultyLevel.MEDIUM:
-            self.__score += 2
-        elif self.__level == DifficultyLevel.HARD:
-            self.__score += 3
+        if self.level == DifficultyLevel.EASY:
+            self.score += 1
+        elif self.level == DifficultyLevel.MEDIUM:
+            self.score += 2
+        elif self.level == DifficultyLevel.HARD:
+            self.score += 3

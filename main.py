@@ -1,75 +1,101 @@
-import pygame
-from QuizWindow import QuizWindow
-from StatsWindow import StatsWindow
-from AchievementsWindow import AchievementsWindow
+import tkinter as tk
+import customtkinter as ctk
+from tkinter import simpledialog
+from SessionController import SessionController
 
 
-def game():
-    pygame.init()
+def register():
+    email = email_field.get()
+    login = login_field.get()
+    password = password_field.get()
+    question = questions_field.get()
+    answer = answer_field.get()
 
-    screen_w, screen_h = 800, 600
-    screen = pygame.display.set_mode((screen_w, screen_h))
-    pygame.display.set_caption("Eventy")
+    if "" in (email, login, password, question, answer):
+        print("Brak wszystkich danych")
+        return
 
-    clock = pygame.time.Clock()
+    if len(password) < 8:
+        print("Haslo nie spelnia wymagan (8 znakow)")
+        return
 
-    button_width, button_height = 260, 50
-
-    quiz_button_rect = pygame.Rect((screen_w - button_width) // 2, (screen_h - button_height) // 2 - 75,
-                                   button_width, button_height)
-    stats_button_rect = pygame.Rect((screen_w - button_width) // 2, (screen_h - button_height) // 2 + 25,
-                                    button_width, button_height)
-    achievement_button_rect = pygame.Rect((screen_w - button_width) // 2, (screen_h - button_height) // 2 + 125,
-                                          button_width, button_height)
-
-    quiz_clicked = False
-
-    overlay_surface = pygame.Surface((button_width, button_height), pygame.SRCALPHA)
-    overlay_surface.fill((255, 255, 255, 128))
-
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    mouse_x, mouse_y = event.pos
-                    if quiz_button_rect.collidepoint(mouse_x, mouse_y) and not quiz_clicked:
-                        QuizWindow()
-                        quiz_clicked = True
-
-                    elif stats_button_rect.collidepoint(mouse_x, mouse_y):
-                        StatsWindow()
-                    elif achievement_button_rect.collidepoint(mouse_x, mouse_y):
-                        AchievementsWindow()
-
-        pygame.draw.rect(screen, (0, 128, 255), quiz_button_rect)
-        pygame.draw.rect(screen, (255, 0, 0), stats_button_rect)
-        pygame.draw.rect(screen, (32, 128, 64), achievement_button_rect)
-
-        font = pygame.font.Font(None, 36)
-
-        quiz_text = font.render("Quiz", True, (255, 255, 255))
-        stats_text = font.render("Statystyki", True, (255, 255, 255))
-        achievements_text = font.render("Osiągnięcia", True, (255, 255, 255))
-
-        quiz_text_rect = quiz_text.get_rect(center=quiz_button_rect.center)
-        stats_text_rect = stats_text.get_rect(center=stats_button_rect.center)
-        achievements_text_rect = achievements_text.get_rect(center=achievement_button_rect.center)
-
-        screen.blit(quiz_text, quiz_text_rect.topleft)
-        screen.blit(stats_text, stats_text_rect.topleft)
-        screen.blit(achievements_text, achievements_text_rect.topleft)
-
-        if quiz_clicked:
-            screen.blit(overlay_surface, quiz_button_rect.topleft)
-
-        pygame.display.flip()
-        clock.tick(60)
-
-    pygame.quit()
+    session.register(login, password, email, question, answer)
 
 
-if __name__ == "__main__":
-    game()
+def login():
+    login_window = simpledialog.Toplevel(root)
+    login_window.title("GreenGame")
+
+    login_log = ctk.CTkLabel(login_window, text="Login:", fg_color=("white", "gray75"), corner_radius=8,
+                             text_color="black", width=150)
+    password_log = ctk.CTkLabel(login_window, text="Password:", fg_color=("white", "gray75"), corner_radius=8,
+                                text_color="black", width=150)
+    answer_log = ctk.CTkLabel(login_window, text="Answer:", fg_color=("white", "gray75"), corner_radius=8,
+                              text_color="black", width=150)
+
+    login_field_log = ctk.CTkEntry(login_window)
+    password_field_log = ctk.CTkEntry(login_window, show="*")
+    answer_field_log = ctk.CTkEntry(login_window)
+
+    login_button_log = ctk.CTkButton(login_window, text="Login",
+                                     command=lambda: log_in(login_field_log.get(), password_field_log.get(),
+                                                            answer_field_log.get()))
+
+    login_log.grid(row=0, column=0, padx=10, pady=5, sticky="e")
+    password_log.grid(row=1, column=0, padx=10, pady=5, sticky="e")
+    answer_log.grid(row=2, column=0, padx=10, pady=5, sticky="e")
+
+    login_field_log.grid(row=0, column=1, padx=10, pady=5)
+    password_field_log.grid(row=1, column=1, padx=10, pady=5)
+    answer_field_log.grid(row=2, column=1, padx=10, pady=5)
+
+    login_button_log.grid(row=3, column=0, pady=10, columnspan=3)
+
+
+def log_in(login, password, answer):
+    session.log_in(login, password, answer)
+
+
+root = tk.Tk()
+root.title("GreenGame")
+root.resizable(False, False)
+
+email_string = ctk.CTkLabel(root, text="Email:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
+                            width=150)
+login_string = ctk.CTkLabel(root, text="Login:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
+                            width=150)
+password_string = ctk.CTkLabel(root, text="Password:", fg_color=("white", "gray75"), corner_radius=8,
+                               text_color="black", width=150)
+question_string = ctk.CTkLabel(root, text="Question:", fg_color=("white", "gray75"), corner_radius=8,
+                               text_color="black", width=150)
+answer_string = ctk.CTkLabel(root, text="Answer:", fg_color=("white", "gray75"), corner_radius=8, text_color="black",
+                             width=150)
+
+email_field = ctk.CTkEntry(root)
+login_field = ctk.CTkEntry(root)
+password_field = ctk.CTkEntry(root, show="*")
+questions_field = ctk.CTkComboBox(root, values=["What is your pet's name?", "Where you were born?", "Favourite book?"])
+answer_field = ctk.CTkEntry(root)
+
+register_button = ctk.CTkButton(root, text="Register", command=register)
+login_button = ctk.CTkButton(root, text="Already have an account? Log in", command=login)
+
+email_string.grid(row=0, column=0, padx=10, pady=5, sticky="e")
+login_string.grid(row=1, column=0, padx=10, pady=5, sticky="e")
+password_string.grid(row=2, column=0, padx=10, pady=5, sticky="e")
+question_string.grid(row=3, column=0, padx=10, pady=5, sticky="e")
+answer_string.grid(row=4, column=0, padx=10, pady=5, sticky="e")
+
+email_field.grid(row=0, column=1, padx=10, pady=5)
+login_field.grid(row=1, column=1, padx=10, pady=5)
+password_field.grid(row=2, column=1, padx=10, pady=5)
+questions_field.grid(row=3, column=1, padx=10, pady=5)
+answer_field.grid(row=4, column=1, padx=10, pady=5)
+
+register_button.grid(row=5, column=0, pady=10, columnspan=3)
+login_button.grid(row=6, column=0, pady=10, columnspan=3)
+
+session = SessionController()
+root.mainloop()
+
+session.close()

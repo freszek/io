@@ -1,18 +1,31 @@
 import random
 import tkinter as tk
 from tkinter import ttk, messagebox
-from DifficultyLevel import DifficultyLevel
+from DifficultyLevel import DifficultyLevel, to_string
 from Event import Event
 from database_setup import db
+import time
 
 
 class QuizWindow:
-    def __init__(self):
+    def __init__(self, player_name):
         db_event = db.get_event(random.randint(1, 10))
         event = Event(db_event[0], db_event[1])
 
-        if not event.can_player_join():
-            messagebox.showinfo("Nie można dołączyć", "Nie możesz dołączyć do tego wydarzenia!")
+        self.player_id = db.get_player_id(player_name)
+        self.player_data = []
+
+        self.start_time = 0
+        self.time_limit = 0
+
+        check = event.can_player_join(self.player_id)
+
+        if check == -1:
+            messagebox.showinfo("Błąd", "Za dużo punktów uzyskałeś w eventach!")
+            db.save_statistics(event.event_id, self.player_id, 0, 0, to_string(event.level))
+            return
+        elif check == -2:
+            messagebox.showinfo("Błąd", "Zdobyłeś wszystkie osiągnięcia w eventach!")
             return
 
         self.level_var = None
@@ -24,16 +37,15 @@ class QuizWindow:
         self.event = event
         self.root = tk.Tk()
         self.root.title(f"{event.get_name()} Quiz")
-        self.root.geometry("600x300")
-        self.root.configure(background="lightblue")
-
-        self.player_id = 0
-        self.player_stats = []
+        self.root.geometry("900x400")
+        self.root.configure(background="#B0E57C")
 
         self.style = ttk.Style()
-        self.style.configure("TButton", padding=6, foreground="black", font=("Arial", 15), width=30, height=30)
-        self.style.configure("TLabel", padding=10, foreground="black", font=("Arial", 15), background="lightblue")
-        self.style.configure("TRadiobutton", padding=10, foreground="black", font=("Arial", 15), background="lightblue")
+        self.style.configure("TButton", padding=6, foreground="black", font=("Arial", 15), width=30, height=30,
+                             background="#60A060")
+        self.style.configure("TLabel", padding=10, foreground="black", font=("Arial", 15), background="#B0E57C")
+        self.style.configure("TRadiobutton", padding=10, foreground="black", font=("Arial", 15),
+                             background="#B0E57C")
 
         self.show_rules()
 
@@ -46,8 +58,10 @@ class QuizWindow:
 
         self.level_var = tk.StringVar()
         levels = ("EASY", "MEDIUM", "HARD")
-        for level in levels:
-            ttk.Radiobutton(self.root, text=level, variable=self.level_var, value=level, style="TRadiobutton").pack()
+        poziomy = ("Łatwy", "Średni", "Trudny")
+        for i, level in enumerate(levels):
+            ttk.Radiobutton(self.root, text=poziomy[i], variable=self.level_var, value=level,
+                            style="TRadiobutton").pack()
 
         level_button = ttk.Button(self.root, text="Rozpocznij quiz", command=self.start_quiz, style="TButton")
         level_button.pack()
@@ -60,13 +74,15 @@ class QuizWindow:
             "3. Jest tylko jedna odpowiedź poprawna!\n"
             "4. Nie ma ujemnych punktów!\n"
             "5. Za poprawną odpowiedź dostajesz 1, 2 lub 3\n"
-            "punkty w zależności od poziomu (łatwy, średni, trudny)"
+            "   punkty w zależności od poziomu (łatwy, średni, trudny)\n"
+            "6. Jeśli posiadasz osiągnięcie Legenda albo przekraczasz 90% możliwych\n   punktów w obecnym evencie to"
+            "nie możesz rozpocząć eventu."
         )
 
         rules_label = ttk.Label(self.root, text=s, style="TLabel")
         rules_label.pack()
 
-        rules_button = ttk.Button(self.root, text="Zacznijmy!", command=self.choose_level, style="TButton")
+        rules_button = ttk.Button(self.root, text="Zacznij!", command=self.choose_level, style="TButton")
         rules_button.pack()
 
     def start_quiz(self):
@@ -76,6 +92,13 @@ class QuizWindow:
         except ValueError:
             self.event.set_level(DifficultyLevel.EASY)
         self.event.start_event()
+
+        if self.event.get_level() == DifficultyLevel.EASY:
+            self.time_limit = 13
+        elif self.event.get_level() == DifficultyLevel.MEDIUM:
+            self.time_limit = 8
+        else:
+            self.time_limit = 5
 
         self.destroy_window()
 
@@ -92,6 +115,22 @@ class QuizWindow:
 
         self.next_button = ttk.Button(self.root, text="Dalej", command=self.next_question, style="TButton")
         self.next_button.pack()
+
+        self.start_time = time.perf_counter()
+
+        self.event.start_time = self.start_time
+
+        self.root.after(10, self.check_time_limit)
+
+    def check_time_limit(self):
+        time_elapsed = time.perf_counter() - self.start_time
+        if time_elapsed >= self.time_limit:
+            messagebox.showinfo("Czas minął", "Przekroczyłeś limit czasu!")
+            self.destroy_window()
+            self.player_data = self.event.end_event(self.player_id, time_elapsed=time_elapsed)
+            self.end_window()
+        else:
+            self.root.after(10, self.check_time_limit)
 
     def destroy_window(self):
         for widget in self.root.winfo_children():
@@ -111,7 +150,7 @@ class QuizWindow:
                 "Koniec wydarzenia", f"Odpowiedziałeś na pytania!\nTwój wynik: {self.event.get_score()}"
             )
             self.destroy_window()
-            self.event.end_event()
+            self.player_data = self.event.end_event(self.player_id)
             self.end_window()
 
     def end_window(self):

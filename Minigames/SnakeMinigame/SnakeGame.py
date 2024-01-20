@@ -3,17 +3,18 @@ import random
 import sys
 
 class SnakeGame:
-    def __init__(self):
+    def __init__(self, width=1200, height=800, duration=120):
+        pygame.init()
         self.points_multiplier = 10
         self.snake_speed = 10
-        self.window_x = 800
-        self.window_y = 600
+        self.window_x = width
+        self.window_y = height
         self.green = (18, 102, 79)
         self.green2 = (31, 173, 135)
         self.black = pygame.Color(0, 0, 0)
         self.white = pygame.Color(255, 255, 255)
         self.grey = (183, 183, 183)
-        self.timer = 120
+        self.timer = duration
         self.timer_rect = pygame.Rect(self.window_x - 150, 0, 140, 0)
         self.score = 0
         self.points = 0
@@ -28,8 +29,9 @@ class SnakeGame:
         self.fruit_position = [random.randrange(1, (self.window_x // 20)) * 20,
                                random.randrange(1, (self.window_y // 20)) * 20]
 
-    def show_welcome_screen(self):
+    def run_game(self):
         self.game_window.fill(self.green2)
+        result = 0
 
         font = pygame.font.SysFont('times new roman', 36)
         title_surface = font.render("WITAJ W GRZE GREENSNAKE", True, self.white)
@@ -50,11 +52,13 @@ class SnakeGame:
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     mouse_pos = pygame.mouse.get_pos()
                     if self.is_play_button_clicked(mouse_pos, play_button_rect):
-                        self.choose_level()
+                        result = self.choose_level()
+                        return result
                     elif self.is_how_to_play_button_clicked(mouse_pos, how_to_play_button_rect):
                         self.show_rules()
 
             pygame.display.update()
+        return result
 
     def draw_how_to_play_button(self):
         button_rect = pygame.Rect(self.window_x // 4, self.window_y / 2 + 50, self.window_x // 2, 40)
@@ -131,7 +135,7 @@ class SnakeGame:
                     mouse_pos = pygame.mouse.get_pos()
                     if self.is_understand_button_clicked(mouse_pos, understand_button_rect):
                         waiting_for_understand = False
-                        self.show_welcome_screen()
+                        self.run_game()
 
             pygame.display.update()
 
@@ -148,6 +152,7 @@ class SnakeGame:
         self.game_window.blit(timer_surface, self.timer_rect)
 
     def choose_level(self):
+        result = 0
         self.game_window.fill(self.green2)
         font = pygame.font.SysFont('times new roman', 36)
         title_surface = font.render("WYBIERZ POZIOM TRUDNOŚCI", True, self.white)
@@ -173,21 +178,25 @@ class SnakeGame:
                         waiting_for_difficulty = False
                         self.points_multiplier = 10
                         self.timer = 500
-                        self.run()
+                        result = self.run()
+                        return result
                     elif self.is_difficulty_button_clicked(mouse_pos, medium_button_rect):
                         self.snake_speed = 20
                         waiting_for_difficulty = False
                         self.points_multiplier = 15
                         self.timer = 1000
-                        self.run()
+                        result = self.run()
+                        return result
                     elif self.is_difficulty_button_clicked(mouse_pos, hard_button_rect):
                         self.snake_speed = 30
                         waiting_for_difficulty = False
                         self.points_multiplier = 20
                         self.timer = 1500
-                        self.run()
+                        result = self.run()
+                        return result
 
             pygame.display.update()
+
 
     def show_tire_disposal_concept(self):
         self.game_window.fill(self.green2)
@@ -278,9 +287,8 @@ class SnakeGame:
             pygame.display.update()
 
         self.show_tire_disposal_concept()
-
-        pygame.quit()
-        sys.exit()
+        self.game_window.fill(self.white)
+        return self.points
 
     def draw_understand_button(self):
         button_rect = pygame.Rect(self.window_x // 4, self.window_y - 50, self.window_x // 2, 40)
@@ -299,9 +307,7 @@ class SnakeGame:
         return self.points
 
     def run(self):
-
         pygame.time.wait(1000)
-
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -338,7 +344,8 @@ class SnakeGame:
             self.timer -= 1
 
             if self.timer == 0:
-                self.game_over()
+                result = self.game_over()
+                return result
 
             if (
                     self.fruit_position[0] == self.snake_position[0] and
@@ -350,7 +357,8 @@ class SnakeGame:
                 if len(self.snake_body) > 1:
                     self.snake_body.pop()
                 else:
-                    self.game_over()
+                    result = self.game_over()
+                    return result
 
             if not self.fruit_spawn:
                 self.fruit_position = [
@@ -367,13 +375,16 @@ class SnakeGame:
                 self.fruit_position[0], self.fruit_position[1], 20, 20))
 
             if self.snake_position[0] < -5 or self.snake_position[0] >= self.window_x:
-                self.game_over()
+                result = self.game_over()
+                return result
             if self.snake_position[1] < -5 or self.snake_position[1] >= self.window_y:
-                self.game_over()
+                result = self.game_over()
+                return result
 
             for block in self.snake_body:
                 if self.snake_position[0] == block[0] and self.snake_position[1] == block[1]:
-                    self.game_over()
+                    result = self.game_over()
+                    return result
 
             self.snake_body.insert(0, list(self.snake_position))
 
@@ -384,9 +395,3 @@ class SnakeGame:
             pygame.display.update()
 
             self.fps.tick(self.snake_speed)
-
-
-if __name__ == "__main__":
-    pygame.init()
-    game = SnakeGame()
-    game.show_welcome_screen()
