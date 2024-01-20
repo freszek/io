@@ -56,8 +56,6 @@ class PlayerMovement:
     def set_starting_position(self):
         self.reposition()
         self.render()
-        utils.draw_board()
-        self.render()
 
     def reposition(self):
         # If the position corresponds to a square

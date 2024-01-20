@@ -54,5 +54,31 @@ class BoardDao:
             print(f"Error updating player position: {e}")
             return False
 
+    def get_user_count(self):
+        query = 'SELECT COUNT(*) FROM board'
+        cursor = self.conn.execute(query)
+        result = cursor.fetchone()
+
+        if result:
+            return result[0]
+        else:
+            return 0
+
+    def get_all_players(self):
+        query = 'SELECT * FROM board'
+        cursor = self.conn.execute(query)
+        results = cursor.fetchall()
+
+        players = []
+        for result in results:
+            players.append({
+                'id': result[0],
+                'user_login': result[1],
+                'board_position': result[2],
+                'avatar_img': result[3]
+            })
+
+        return players
+
     def close(self):
         self.conn.close()
