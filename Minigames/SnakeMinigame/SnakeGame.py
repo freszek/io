@@ -3,7 +3,7 @@ import random
 import sys
 
 class SnakeGame:
-    def __init__(self, width=1200, height=800, duration=120):
+    def __init__(self, width=1200, height=800, duration=30):
         pygame.init()
         self.points_multiplier = 10
         self.snake_speed = 10

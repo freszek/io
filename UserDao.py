@@ -1,7 +1,7 @@
 import hashlib
 import sqlite3
 from typing import List
-from IntegratedGame import User
+from Userr import Userr as User
 import datetime
 from datetime import datetime, timedelta
 

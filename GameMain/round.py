@@ -10,7 +10,7 @@ def roll():
     val = mglobals.DICEOBJ.roll_dice()
     return val
 
-def round_loop(login):
+def round_loop(login, user_id):
 
     mainboard_ui.init_dice()
     mainboard_ui.init_printui(login)
