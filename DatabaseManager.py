@@ -60,8 +60,7 @@ class DatabaseManager:
         self.connection.commit()
 
     def get_statistics(self, player_id):
-        self.cursor.execute("SELECT player_id, event_id, score, completion_time, level FROM statistics "
-                            "WHERE player_id = ?", (player_id,))
+        self.cursor.execute("SELECT * FROM statistics WHERE player_id = ?", (player_id,))
         return self.cursor.fetchall()
 
     def get_player_achievements(self, player_id):

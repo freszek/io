@@ -607,11 +607,11 @@ def main_login_window(frame):
     login_button_log.place(x=240, y=250)
 
     register_button = ctk.CTkButton(root, text="Zarejestruj", command=lambda: register(root), fg_color=("#60A060"),
-                                    hover_color=("#006400"), corner_radius=0, width=150)
+                                    hover_color="#006400", corner_radius=0, width=150)
 
     forgot_password_button = ctk.CTkButton(root, text="Zapomniałes hasła?", command=lambda: answer_login(root),
                                            fg_color=("#60A060"),
-                                           hover_color=("#006400"), corner_radius=0, width=150)
+                                           hover_color="#006400", corner_radius=0, width=150)
 
     register_button.place(x=410, y=250)
 
@@ -623,37 +623,40 @@ def main_login_window(frame):
 
     # session.close()
 
-def render_stats_table(screen, font, users):
-    from database_setup import db
-    statistics_data = []
-    for el in users:
-        statistics_data.extend(db.get_statistics(el.id))  # Extend instead of append to flatten the list
-    # Define colors
-    table_color = (200, 200, 200)
-    text_color = (0, 0, 0)
-
-    # Define table size and position
-    table_x = 50
-    table_y = 110
-    table_width = 700
-    table_height = 400
-    row_height = 50
-
-    # Define column widths
-    col_widths = [200, 300, 50, 50, 100]
-
-    # Draw the table background
-    pygame.draw.rect(screen, table_color, (table_x, table_y, table_width, table_height))
-
-    # Render table headers
-    headers = ["Nazwa gracza", "Nazwa eventu", "Wynik", "Czas", "Poziom"]
+def render_headers(screen, font, headers, col_widths, table_x=50, table_y=110, row_height=50, text_color=(0, 0, 0)):
     for i, (header, width) in enumerate(zip(headers, col_widths)):
         header_rect = pygame.Rect(table_x + sum(col_widths[:i]), table_y, width, row_height)
         pygame.draw.rect(screen, (100, 100, 100), header_rect)
         header_text = font.render(header, True, text_color)
         text_rect = header_text.get_rect(center=header_rect.center)
         screen.blit(header_text, text_rect)
+
+
+def render_stats_table(screen, font, users):
+    from database_setup import db
+    statistics_data = []
+    for el in users:
+        statistics_data.extend(db.get_statistics(el.id))
+
+    table_color = (200, 200, 200)
+    text_color = (0, 0, 0)
+
+    table_x = 50
+    table_y = 110
+    table_width = 700
+    table_height = 400
+    row_height = 50
+
+    col_widths = [200, 300, 50, 50, 100]
+
+    pygame.draw.rect(screen, table_color, (table_x, table_y, table_width, table_height))
+
+    headers = ["Nazwa gracza", "Nazwa eventu", "Wynik", "Czas", "Poziom"]
+
+    render_headers(screen, font, headers, col_widths)
+
     for i, stat_entry in enumerate(statistics_data):
+        stat_entry = stat_entry[1:]
         for j, data_point in enumerate(stat_entry):
             col_rect = pygame.Rect(table_x + sum(col_widths[:j]), table_y + (i + 1) * row_height,
                                    col_widths[j], row_height)
@@ -667,6 +670,64 @@ def render_stats_table(screen, font, users):
                 text = font.render(str(data_point), True, text_color)
             text_rect = text.get_rect(center=col_rect.center)
             screen.blit(text, text_rect)
+
+
+def render_dropdown(screen, font, options, selected_option, rect):
+    pygame.draw.rect(screen, (255, 255, 255), rect)
+    pygame.draw.rect(screen, (0, 0, 0), rect, 2)
+
+    text = font.render(selected_option, True, (0, 0, 0))
+    text_rect = text.get_rect(center=rect.center)
+    screen.blit(text, text_rect)
+
+    if rect.collidepoint(pygame.mouse.get_pos()):
+        pygame.draw.line(screen, (0, 0, 0), (rect.right - 20, rect.centery - 10), (rect.right - 10, rect.centery), 2)
+        pygame.draw.line(screen, (0, 0, 0), (rect.right - 20, rect.centery + 10), (rect.right - 10, rect.centery), 2)
+
+
+def render_achievements_table(screen, font, users):
+    from database_setup import db
+    achievements_data = []
+    for user in users:
+        achievements_data.append(db.get_player_achievements(user.id))
+    table_color = (200, 200, 200)
+    text_color = (0, 0, 0)
+
+    table_x = 50
+    table_y = 110
+    table_width = 700
+    table_height = 400
+    row_height = 50
+
+    col_widths = [200, 300, 200]
+
+    pygame.draw.rect(screen, table_color, (table_x, table_y, table_width, table_height))
+
+    headers = ["Nazwa osiągnięcia", "Opis", "Liczba graczy"]
+
+    user_names = [user.login for user in users]
+
+    dropdown_rect = pygame.Rect(table_x, 60, 150, 30)
+    selected_user = user_names[0]
+
+    for i, user_achievements in enumerate(achievements_data):
+        if i == 0:
+            render_dropdown(screen, font, user_names, selected_user, dropdown_rect)
+
+        """
+        if user.login == selected_user:
+            render_headers(screen, font, headers, col_widths)
+
+            for j, achievement in enumerate(user_achievements):
+                col_rect = pygame.Rect(table_x + sum(col_widths[:j]), table_y + (i + 1) * row_height, col_widths[j],
+                                       row_height)
+                pygame.draw.rect(screen, (255, 255, 255), col_rect)
+                text = font.render(str(achievement), True, text_color)
+                text_rect = text.get_rect(center=col_rect.center)
+                screen.blit(text, text_rect)
+        """
+
+# Add this function wherever it fits in your code.
 
 
 def render_ranking(screen, ranking_data, font, current_user, daily_ranking):
@@ -749,8 +810,8 @@ def ranking(current_user):
         weekly_button_rect = pygame.Rect(210, 10, 150, 40)
         general_button_rect = pygame.Rect(370, 10, 150, 40)  # Przycisk dla rankingu ogólnego
         friends_button_rect = pygame.Rect(530, 10, 150, 40)  # Przycisk dla rankingu znajomych
-        statistics_button_rect = pygame.Rect(50, 60, 150, 40)  # Add Statistics button
-        achievements_button_rect = pygame.Rect(210, 60, 150, 40)  # Add Achievements button
+        statistics_button_rect = pygame.Rect(50, 60, 150, 40)  # Przycisk do statystyk
+        achievements_button_rect = pygame.Rect(210, 60, 150, 40)  # Przycisk do osiagniec
         font = pygame.font.SysFont(None, 24)
 
         user_dao = UserDao()
@@ -766,17 +827,33 @@ def ranking(current_user):
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if close_button_rect.collidepoint(event.pos):
                         ranking_opened = False
+                        statistics_opened = False
+                        achievements_opened = False
                     elif daily_button_rect.collidepoint(event.pos):
                         daily_ranking = True
+                        statistics_opened = False
+                        achievements_opened = False
                     elif weekly_button_rect.collidepoint(event.pos):
                         daily_ranking = False
+                        statistics_opened = False
+                        achievements_opened = False
                     elif general_button_rect.collidepoint(event.pos):
                         friends_ranking = False
+                        statistics_opened = False
+                        achievements_opened = False
                     elif friends_button_rect.collidepoint(event.pos):
                         friends_ranking = True
+                        statistics_opened = False
+                        achievements_opened = False
                     elif statistics_button_rect.collidepoint(event.pos):
+                        daily_ranking = False
+                        friends_ranking = False
+                        achievements_opened = False
                         statistics_opened = True
                     elif achievements_button_rect.collidepoint(event.pos):
+                        statistics_opened = False
+                        daily_ranking = False
+                        friends_ranking = False
                         achievements_opened = True
 
             ranking_screen.fill((255, 255, 255))
@@ -794,10 +871,14 @@ def ranking(current_user):
                                                                  'daily' if daily_ranking else 'weekly')
             else:
                 ranking_data = user_dao.get_ranking_data(user_list, 'daily' if daily_ranking else 'weekly')
-            render_ranking(ranking_screen, ranking_data, font, current_user, daily_ranking)
+
+            if not (achievements_opened or statistics_opened):  # zeby nie bylo wyrenderowanego leadboardu
+                render_ranking(ranking_screen, ranking_data, font, current_user, daily_ranking)
 
             if statistics_opened:
                 render_stats_table(ranking_screen, font, user_list)
+            elif achievements_opened:
+                render_achievements_table(ranking_screen, font, user_list)
 
             pygame.display.flip()
 
