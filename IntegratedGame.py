@@ -595,7 +595,7 @@ def main_login_window(frame):
 
     login_button_log = ctk.CTkButton(root, text="Login",
                                      command=lambda: log_in(login_field_log.get(), password_field_log.get(),
-                                                            "", root), fg_color=("#60A060"), hover_color=("#006400"),
+                                                            "", root), fg_color="#60A060", hover_color="#006400",
                                      corner_radius=0, width=150)
 
     login_log.place(x=240, y=150)
@@ -623,7 +623,8 @@ def main_login_window(frame):
 
     # session.close()
 
-def render_headers(screen, font, headers, col_widths, table_x=50, table_y=110, row_height=50, text_color=(0, 0, 0)):
+
+def render_headers(screen, font, headers, col_widths, table_x=150, table_y=160, row_height=50, text_color=(0, 0, 0)):
     for i, (header, width) in enumerate(zip(headers, col_widths)):
         header_rect = pygame.Rect(table_x + sum(col_widths[:i]), table_y, width, row_height)
         pygame.draw.rect(screen, (100, 100, 100), header_rect)
@@ -632,100 +633,83 @@ def render_headers(screen, font, headers, col_widths, table_x=50, table_y=110, r
         screen.blit(header_text, text_rect)
 
 
-def render_stats_table(screen, font, users):
-    from database_setup import db
-    statistics_data = []
-    for el in users:
-        statistics_data.extend(db.get_statistics(el.id))
+def render_dropdown(sc, f, u):
+    result = None
+    user_rect = pygame.Rect(0, 120, 150, 30)
+    pygame.draw.rect(sc, (255, 255, 255), user_rect)
+    pygame.draw.rect(sc, (0, 0, 0), user_rect, 2)
+    user_rect.y -= user_rect.height
+    for el in u:
+        user_rect.y += user_rect.height
+        option_text = f.render(el.get('login'), True, (0, 0, 0))
+        option_text_rect = option_text.get_rect(center=user_rect.center)
+        sc.blit(option_text, option_text_rect)
+        if user_rect.collidepoint(pygame.mouse.get_pos()):
+            result = el.get('id')
+    return result
 
+
+def render_events_table(screen, users, param=True):
+    from database_setup import db
+    font = pygame.font.SysFont(None, 20)
     table_color = (200, 200, 200)
     text_color = (0, 0, 0)
 
-    table_x = 50
-    table_y = 110
-    table_width = 700
+    table_x = 150
+    table_y = 160
+    table_width = 600
     table_height = 400
     row_height = 50
 
-    col_widths = [200, 300, 50, 50, 100]
-
     pygame.draw.rect(screen, table_color, (table_x, table_y, table_width, table_height))
 
-    headers = ["Nazwa gracza", "Nazwa eventu", "Wynik", "Czas", "Poziom"]
+    user_data = [{'id': user.id, 'login': user.login} for user in users]
 
-    render_headers(screen, font, headers, col_widths)
+    ids = render_dropdown(screen, font, user_data)
 
-    for i, stat_entry in enumerate(statistics_data):
-        stat_entry = stat_entry[1:]
-        for j, data_point in enumerate(stat_entry):
-            col_rect = pygame.Rect(table_x + sum(col_widths[:j]), table_y + (i + 1) * row_height,
-                                   col_widths[j], row_height)
-            pygame.draw.rect(screen, (255, 255, 255), col_rect)
-            get_user = lambda ids: next((user.login for user in users if ids == user.id), "")
-            if j == 0:
-                text = font.render(str(get_user(data_point)), True, text_color)
-            elif j == 1:
-                text = font.render(str(db.get_event(data_point)[1]), True, text_color)
-            else:
-                text = font.render(str(data_point), True, text_color)
-            text_rect = text.get_rect(center=col_rect.center)
-            screen.blit(text, text_rect)
+    if param:
+        col_widths = [150, 350, 100]
 
+        headers = ['Nazwa osiągnięcia', 'Opis', 'Liczba graczy']
 
-def render_dropdown(screen, font, options, selected_option, rect):
-    pygame.draw.rect(screen, (255, 255, 255), rect)
-    pygame.draw.rect(screen, (0, 0, 0), rect, 2)
+        render_headers(screen, font, headers, col_widths)
 
-    text = font.render(selected_option, True, (0, 0, 0))
-    text_rect = text.get_rect(center=rect.center)
-    screen.blit(text, text_rect)
+        if ids is not None:
+            achievements_data = {'id': ids, 'data': db.get_player_achievements(ids)}
+            if len(achievements_data['data']) > 0:
+                for i, achievement in enumerate(achievements_data['data']):
+                    achievement = list(achievement)
+                    achievement.append(db.count_achievements(achievement[0]))
+                    achievement = achievement[1:]
+                    for j, data_point in enumerate(achievement):
+                        col_rect = pygame.Rect(table_x + sum(col_widths[:j]), table_y + (i + 1) * row_height,
+                                               col_widths[j], row_height)
+                        pygame.draw.rect(screen, (255, 255, 255), col_rect)
+                        text = font.render(str(data_point), True, text_color)
+                        text_rect = text.get_rect(center=col_rect.center)
+                        screen.blit(text, text_rect)
+    else:
+        col_widths = [300, 100, 100, 100]
 
-    if rect.collidepoint(pygame.mouse.get_pos()):
-        pygame.draw.line(screen, (0, 0, 0), (rect.right - 20, rect.centery - 10), (rect.right - 10, rect.centery), 2)
-        pygame.draw.line(screen, (0, 0, 0), (rect.right - 20, rect.centery + 10), (rect.right - 10, rect.centery), 2)
+        headers = ['Nazwa eventu', 'Wynik', 'Czas', 'Poziom']
 
+        render_headers(screen, font, headers, col_widths)
 
-def render_achievements_table(screen, font, users):
-    from database_setup import db
-    achievements_data = []
-    for user in users:
-        achievements_data.append(db.get_player_achievements(user.id))
-    table_color = (200, 200, 200)
-    text_color = (0, 0, 0)
-
-    table_x = 50
-    table_y = 110
-    table_width = 700
-    table_height = 400
-    row_height = 50
-
-    col_widths = [200, 300, 200]
-
-    pygame.draw.rect(screen, table_color, (table_x, table_y, table_width, table_height))
-
-    headers = ["Nazwa osiągnięcia", "Opis", "Liczba graczy"]
-
-    user_names = [user.login for user in users]
-
-    dropdown_rect = pygame.Rect(table_x, 60, 150, 30)
-    selected_user = user_names[0]
-
-    for i, user_achievements in enumerate(achievements_data):
-        if i == 0:
-            render_dropdown(screen, font, user_names, selected_user, dropdown_rect)
-
-        """
-        if user.login == selected_user:
-            render_headers(screen, font, headers, col_widths)
-
-            for j, achievement in enumerate(user_achievements):
-                col_rect = pygame.Rect(table_x + sum(col_widths[:j]), table_y + (i + 1) * row_height, col_widths[j],
-                                       row_height)
-                pygame.draw.rect(screen, (255, 255, 255), col_rect)
-                text = font.render(str(achievement), True, text_color)
-                text_rect = text.get_rect(center=col_rect.center)
-                screen.blit(text, text_rect)
-        """
+        if ids is not None:
+            statistics_data = {'id': ids, 'data': db.get_player_statistics(ids)}
+            if len(statistics_data['data']) > 0:
+                for i, stat_entry in enumerate(statistics_data['data']):
+                    stat_entry = stat_entry[2:]
+                    for j, data_point in enumerate(stat_entry):
+                        col_rect = pygame.Rect(table_x + sum(col_widths[:j]), table_y + (i + 1) * row_height,
+                                               col_widths[j], row_height)
+                        pygame.draw.rect(screen, (255, 255, 255), col_rect)
+                        if j == 0:
+                            text = font.render(str(db.get_event(data_point)[1]), True, text_color)
+                        else:
+                            text = font.render(str(data_point), True, text_color)
+                        text_rect = text.get_rect(center=col_rect.center)
+                        screen.blit(text, text_rect)
 
 # Add this function wherever it fits in your code.
 
@@ -876,9 +860,9 @@ def ranking(current_user):
                 render_ranking(ranking_screen, ranking_data, font, current_user, daily_ranking)
 
             if statistics_opened:
-                render_stats_table(ranking_screen, font, user_list)
+                render_events_table(ranking_screen, user_list, False)
             elif achievements_opened:
-                render_achievements_table(ranking_screen, font, user_list)
+                render_events_table(ranking_screen, user_list)
 
             pygame.display.flip()
 
