@@ -126,7 +126,3 @@ class GameRulesApp:
             pygame.display.flip()
             game_rules.clock.tick(FPS)
 
-
-if __name__ == "__main__":
-    app = GameRulesApp()
-    app.run()

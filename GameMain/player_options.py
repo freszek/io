@@ -21,9 +21,11 @@ light_green = (96, 160, 96)
 
 font = pygame.font.SysFont("Yu Gothic UI", 30, bold=True)
 
+
 def play_click_sound():
     pygame.mixer.music.load("click_sound.wav")
     pygame.mixer.music.play(0)
+
 
 def create_button(text, position, command):
     button_width, button_height = 300, 80
@@ -33,7 +35,8 @@ def create_button(text, position, command):
     if rect.collidepoint(pygame.mouse.get_pos()):
         pygame.draw.rect(button_surface, (*light_green, 200), (0, 0, button_width, button_height), border_radius=10)
     else:
-        pygame.draw.rect(button_surface, (*button_background_color, 200), (0, 0, button_width, button_height), border_radius=10)
+        pygame.draw.rect(button_surface, (*button_background_color, 200), (0, 0, button_width, button_height),
+                         border_radius=10)
     button_text = font.render(text, True, (*dark_green, 200))
     text_rect = button_text.get_rect(center=button_surface.get_rect().center)
     button_surface.blit(button_text, text_rect)
@@ -42,25 +45,30 @@ def create_button(text, position, command):
         play_click_sound()
         command()
 
+
 def play_game():
-    subprocess.run(["python", "GameMain/main_board.py", str(sys.argv[1])])
+    subprocess.run(["python", "GameMain/main_board.py", str(sys.argv[1]), str(sys.argv[2])])
     pygame.quit()
     sys.exit()
+
 
 def character_selection():
     dao = BoardDao()
     player_selector = PlayerAvatar(mglobals.DISPLAY_W, mglobals.DISPLAY_H, 6)
     selected_player_avatar = player_selector.choose_player()
     dao.update_avatar_image(str(sys.argv[1]), selected_player_avatar)
-    pygame.quit()
+    print(selected_player_avatar)
+    pygame.display.flip()
+
+
 def game_rules():
     display_rules()
     pygame.quit()
 
+
 logo_image = pygame.image.load("logo.png")
 logo_image = pygame.transform.scale(logo_image, (250, 250))
 logo_rect = logo_image.get_rect(center=(width // 2, height // 5.5))
-
 
 while True:
     for event in pygame.event.get():

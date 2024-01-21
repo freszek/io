@@ -1,9 +1,9 @@
 import hashlib
 import sqlite3
+from datetime import datetime, timedelta
 from typing import List
 from Userr import Userr as User
-import datetime
-from datetime import datetime, timedelta
+
 
 class Points:
     def __init__(self, value, date, category):
@@ -28,6 +28,7 @@ class Points:
 
     def set_category(self, category):
         self.category = category
+
 
 class UserDao:
     def __init__(self, db_path="users.db"):
@@ -188,6 +189,20 @@ class UserDao:
         query = "DELETE FROM user_friends WHERE user_id = ? AND friend_id = ?"
         cursor.execute(query, (user_id, friend_id))
         self.conn.commit()
+
+        cursor.close()
+
+    def add_friend(self, user_id, new_friend_id):
+        cursor = self.conn.cursor()
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM user_friends WHERE user_id = ? AND friend_id = ?",
+            (user_id, new_friend_id))
+        if cursor.fetchone()[0] == 0:
+            query = "INSERT INTO user_friends (user_id, friend_id) VALUES (?, ?)"
+            cursor.execute(query, (user_id, new_friend_id))
+            self.conn.commit()
+        print("xd")
 
         cursor.close()
 

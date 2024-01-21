@@ -99,3 +99,7 @@ def init_pygame():
 def init():
     init_pygame()
     load_imgs()
+
+
+def P2_IMG():
+    return None

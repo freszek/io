@@ -1,5 +1,4 @@
 import random
-import sys
 from datetime import datetime
 
 import pygame
@@ -196,20 +195,12 @@ class Player:
     RECT_WIDTH = 65
     SQ_HEIGHT_WIDTH = 106
 
-<<<<<<< HEAD
-    def __init__(self, player_name, initial_position, player_img):
-=======
-    def __init__(self, player_name, initial_position, player_id):
->>>>>>> origin/Scenariusz
+    def __init__(self, player_name, initial_position, player_img, player_id):
         self.player_name = player_name
         self.color = mglobals.PLAYER_ONE_COLOR \
             if self.player_name == player_name \
             else mglobals.PLAYER_TWO_COLOR
         self.ps = PlayerSelection(self.color, initial_position)
-<<<<<<< HEAD
-        self.pm = PlayerMovement(self.player_name, pygame.image.load(player_img), initial_position)
-=======
-        self.pm = PlayerMovement(self.player_name, mglobals.P1_IMG, initial_position, player_id) \
+        self.pm = PlayerMovement(self.player_name, pygame.image.load(player_img), initial_position, player_id) \
             if self.player_name == player_name \
             else PlayerMovement(self.player_name, mglobals.P2_IMG, initial_position, player_id)
->>>>>>> origin/Scenariusz

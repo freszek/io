@@ -22,7 +22,7 @@ def round_loop(login, user_id):
     players = []
     for i in range(0, num_of_players):
         player = Player(player_data[i]['user_login'],
-                        player_data[i]['board_position'], player_data[i]['avatar_img'])
+                        player_data[i]['board_position'], player_data[i]['avatar_img'], user_id)
         players.append(player)
         mglobals.PLAYER_OBJ[player_data[i]['user_login']] = players[i]
         players[i].pm.set_starting_position()
