@@ -606,11 +606,11 @@ def main_login_window(frame):
 
     login_button_log.place(x=240, y=250)
 
-    register_button = ctk.CTkButton(root, text="Zarejestruj", command=lambda: register(root), fg_color=("#60A060"),
+    register_button = ctk.CTkButton(root, text="Zarejestruj", command=lambda: register(root), fg_color="#60A060",
                                     hover_color="#006400", corner_radius=0, width=150)
 
     forgot_password_button = ctk.CTkButton(root, text="Zapomniałes hasła?", command=lambda: answer_login(root),
-                                           fg_color=("#60A060"),
+                                           fg_color="#60A060",
                                            hover_color="#006400", corner_radius=0, width=150)
 
     register_button.place(x=410, y=250)
@@ -624,33 +624,56 @@ def main_login_window(frame):
     # session.close()
 
 
-def render_headers(screen, font, headers, col_widths, table_x=150, table_y=160, row_height=50, text_color=(0, 0, 0)):
-    for i, (header, width) in enumerate(zip(headers, col_widths)):
-        header_rect = pygame.Rect(table_x + sum(col_widths[:i]), table_y, width, row_height)
-        pygame.draw.rect(screen, (100, 100, 100), header_rect)
-        header_text = font.render(header, True, text_color)
-        text_rect = header_text.get_rect(center=header_rect.center)
-        screen.blit(header_text, text_rect)
-
-
-def render_dropdown(sc, f, u):
-    result = None
-    user_rect = pygame.Rect(0, 120, 150, 30)
-    pygame.draw.rect(sc, (255, 255, 255), user_rect)
-    pygame.draw.rect(sc, (0, 0, 0), user_rect, 2)
-    user_rect.y -= user_rect.height
-    for el in u:
-        user_rect.y += user_rect.height
-        option_text = f.render(el.get('login'), True, (0, 0, 0))
-        option_text_rect = option_text.get_rect(center=user_rect.center)
-        sc.blit(option_text, option_text_rect)
-        if user_rect.collidepoint(pygame.mouse.get_pos()):
-            result = el.get('id')
-    return result
+ids = None
+sorting_criteria = None
 
 
 def render_events_table(screen, users, param=True):
     from database_setup import db
+
+    def render_headers(sc, f, h, c_width, t_x=150, t_y=160, row_h=50, t_col=(0, 0, 0)):
+        for index, (header, width) in enumerate(zip(h, c_width)):
+            header_rect = pygame.Rect(t_x + sum(c_width[:index]), t_y, width, row_h)
+            pygame.draw.rect(sc, (100, 100, 100), header_rect)
+            header_text = f.render(header, True, t_col)
+            t_rect = header_text.get_rect(center=header_rect.center)
+            sc.blit(header_text, t_rect)
+
+            if header in sorting_buttons:
+                button_rect = pygame.Rect(t_x + sum(c_width[:index]) + width - 20, t_y + 5, 20, 20)
+                pygame.draw.rect(sc, (150, 150, 150), button_rect)
+                button_text = f.render("^", True, t_col) if sorting_criteria == header else f.render("v", True, t_col)
+                button_text_rect = button_text.get_rect(center=button_rect.center)
+                sc.blit(button_text, button_text_rect)
+
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_pos = pygame.mouse.get_pos()
+                check_button_click(mouse_pos)
+
+    def render_dropdown(sc, f, u):
+        global ids, sorting_criteria
+        user_rect = pygame.Rect(0, 120, 150, 30)
+        pygame.draw.rect(sc, (255, 255, 255), user_rect)
+        pygame.draw.rect(sc, (0, 0, 0), user_rect, 2)
+        user_rect.y -= user_rect.height
+        for el in u:
+            user_rect.y += user_rect.height
+            option_text = f.render(el.get('login'), True, (0, 0, 0))
+            option_text_rect = option_text.get_rect(center=user_rect.center)
+            sc.blit(option_text, option_text_rect)
+            if user_rect.collidepoint(pygame.mouse.get_pos()):
+                sorting_criteria = None
+                ids = el.get('id')
+
+    def check_button_click(x_y_mos):
+        global sorting_criteria
+        for index, (header, width) in enumerate(zip(headers, col_widths)):
+            button_rect = pygame.Rect(table_x + sum(col_widths[:index]) + width - 20, table_y + 5, 20, 20)
+            if button_rect.collidepoint(x_y_mos):
+                sorting_criteria = header
+                print(f"Sorting by: {sorting_criteria}")
+
     font = pygame.font.SysFont(None, 20)
     table_color = (200, 200, 200)
     text_color = (0, 0, 0)
@@ -661,11 +684,12 @@ def render_events_table(screen, users, param=True):
     table_height = 400
     row_height = 50
 
+    sorting_buttons = ['Wynik', 'Czas', 'Poziom']
+
     pygame.draw.rect(screen, table_color, (table_x, table_y, table_width, table_height))
 
-    user_data = [{'id': user.id, 'login': user.login} for user in users]
-
-    ids = render_dropdown(screen, font, user_data)
+    render_dropdown(screen, font, [{'id': user.id, 'login': user.login} for user in users])
+    global ids
 
     if param:
         col_widths = [150, 350, 100]
