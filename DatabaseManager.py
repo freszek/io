@@ -59,8 +59,18 @@ class DatabaseManager:
                             "VALUES (?, ?, ?, ?, ?)", (event_id, player_name, score, time, level))
         self.connection.commit()
 
-    def get_player_statistics(self, player_id):
-        self.cursor.execute("SELECT * FROM statistics WHERE player_id = ?", (player_id,))
+    def get_player_statistics(self, player_id, sortby=None):
+        query = ""
+        if sortby is None:
+            query = "SELECT * FROM statistics WHERE player_id = ?"
+        elif sortby == 'Czas':
+            query = "SELECT * FROM statistics WHERE player_id = ? ORDER BY completion_time"
+        elif sortby == 'Wynik':
+            query = "SELECT * FROM statistics WHERE player_id = ? ORDER BY score DESC"
+        elif sortby == 'Poziom':
+            query = ("SELECT * FROM statistics WHERE player_id = ? ORDER BY "
+                     "CASE level WHEN 'EASY' THEN 1 WHEN 'MEDIUM' THEN 2 WHEN 'HARD' THEN 3 ELSE 4 END")
+        self.cursor.execute(query, (player_id,))
         return self.cursor.fetchall()
 
     def get_player_achievements(self, player_id):

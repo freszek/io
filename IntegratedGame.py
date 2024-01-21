@@ -689,7 +689,7 @@ def render_events_table(screen, users, param=True):
     pygame.draw.rect(screen, table_color, (table_x, table_y, table_width, table_height))
 
     render_dropdown(screen, font, [{'id': user.id, 'login': user.login} for user in users])
-    global ids
+    global ids, sorting_criteria
 
     if param:
         col_widths = [150, 350, 100]
@@ -720,7 +720,7 @@ def render_events_table(screen, users, param=True):
         render_headers(screen, font, headers, col_widths)
 
         if ids is not None:
-            statistics_data = {'id': ids, 'data': db.get_player_statistics(ids)}
+            statistics_data = {'id': ids, 'data': db.get_player_statistics(ids, sorting_criteria)}
             if len(statistics_data['data']) > 0:
                 for i, stat_entry in enumerate(statistics_data['data']):
                     stat_entry = stat_entry[2:]
