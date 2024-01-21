@@ -626,12 +626,14 @@ def main_login_window(frame):
 
 ids = None
 sorting_criteria = None
+scroll_offset = 0
+scroll_speed = 30
 
 
 def render_events_table(screen, users, param=True):
     from database_setup import db
 
-    def render_headers(sc, f, h, c_width, t_x=150, t_y=160, row_h=50, t_col=(0, 0, 0)):
+    def render_headers(sc, f, h, c_width, t_x=150, t_y=110, row_h=50, t_col=(0, 0, 0)):
         for index, (header, width) in enumerate(zip(h, c_width)):
             header_rect = pygame.Rect(t_x + sum(c_width[:index]), t_y, width, row_h)
             pygame.draw.rect(sc, (100, 100, 100), header_rect)
@@ -672,14 +674,31 @@ def render_events_table(screen, users, param=True):
             button_rect = pygame.Rect(table_x + sum(col_widths[:index]) + width - 20, table_y + 5, 20, 20)
             if button_rect.collidepoint(x_y_mos):
                 sorting_criteria = header
-                print(f"Sorting by: {sorting_criteria}")
+
+    def handle_scroll(event):
+        global scroll_offset
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 4:
+            scroll_offset = max(0, scroll_offset - 1)
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 5:
+            scroll_offset += 1
+
+    def render_scrollbar(sc, total_r, visible_r, t_x, t_y, t_height):
+        scrollbar_rect = pygame.Rect(t_x + table_width, t_y, 20, t_height)
+        pygame.draw.rect(sc, (200, 200, 200), scrollbar_rect)
+
+        if total_r > visible_r:
+            scrollbar_handle_height = max(t_height * visible_r / total_r, 20)
+            max_handle_y = t_y + t_height - scrollbar_handle_height
+            handle_y = max(t_y, min(max_handle_y, t_y + scroll_offset * t_height / (total_r - visible_r)))
+            scrollbar_handle_rect = pygame.Rect(t_x + table_width, handle_y, 20, scrollbar_handle_height)
+            pygame.draw.rect(sc, (100, 100, 100), scrollbar_handle_rect)
 
     font = pygame.font.SysFont(None, 20)
     table_color = (200, 200, 200)
     text_color = (0, 0, 0)
 
     table_x = 150
-    table_y = 160
+    table_y = 110
     table_width = 600
     table_height = 400
     row_height = 50
@@ -689,7 +708,11 @@ def render_events_table(screen, users, param=True):
     pygame.draw.rect(screen, table_color, (table_x, table_y, table_width, table_height))
 
     render_dropdown(screen, font, [{'id': user.id, 'login': user.login} for user in users])
-    global ids, sorting_criteria
+
+    global ids, sorting_criteria, scroll_offset
+
+    for event in pygame.event.get():
+        handle_scroll(event)
 
     if param:
         col_widths = [150, 350, 100]
@@ -701,7 +724,9 @@ def render_events_table(screen, users, param=True):
         if ids is not None:
             achievements_data = {'id': ids, 'data': db.get_player_achievements(ids)}
             if len(achievements_data['data']) > 0:
-                for i, achievement in enumerate(achievements_data['data']):
+                total_rows = len(achievements_data['data'])
+                visible_rows = table_height // row_height
+                for i, achievement in enumerate(achievements_data['data'][scroll_offset:scroll_offset + visible_rows]):
                     achievement = list(achievement)
                     achievement.append(db.count_achievements(achievement[0]))
                     achievement = achievement[1:]
@@ -712,6 +737,7 @@ def render_events_table(screen, users, param=True):
                         text = font.render(str(data_point), True, text_color)
                         text_rect = text.get_rect(center=col_rect.center)
                         screen.blit(text, text_rect)
+                render_scrollbar(screen, total_rows, visible_rows, table_x, table_y, table_height)
     else:
         col_widths = [300, 100, 100, 100]
 
@@ -722,7 +748,9 @@ def render_events_table(screen, users, param=True):
         if ids is not None:
             statistics_data = {'id': ids, 'data': db.get_player_statistics(ids, sorting_criteria)}
             if len(statistics_data['data']) > 0:
-                for i, stat_entry in enumerate(statistics_data['data']):
+                total_rows = len(statistics_data['data'])
+                visible_rows = table_height // row_height
+                for i, stat_entry in enumerate(statistics_data['data'][scroll_offset:scroll_offset + visible_rows]):
                     stat_entry = stat_entry[2:]
                     for j, data_point in enumerate(stat_entry):
                         col_rect = pygame.Rect(table_x + sum(col_widths[:j]), table_y + (i + 1) * row_height,
@@ -734,6 +762,7 @@ def render_events_table(screen, users, param=True):
                             text = font.render(str(data_point), True, text_color)
                         text_rect = text.get_rect(center=col_rect.center)
                         screen.blit(text, text_rect)
+                render_scrollbar(screen, total_rows, visible_rows, table_x, table_y, table_height)
 
 # Add this function wherever it fits in your code.
 
@@ -1027,8 +1056,8 @@ def main_game_loop():
         tmp = session.user_dao.get_by_id(session.session_user.id)
         players.append({"id": tmp.id, "login": tmp.login})
         if len(example_users) != 0:
-            for ids in example_users:
-                tmp = session.user_dao.get_by_id(ids)
+            for idx in example_users:
+                tmp = session.user_dao.get_by_id(idx)
                 players.append({"id": tmp.id, "login": tmp.login})
         main(players)
         # subprocess.run(["python", "main_board.py"])

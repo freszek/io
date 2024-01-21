@@ -4,7 +4,8 @@ from database_setup import db
 
 
 class AchievementsWindow:
-    def __init__(self, data):
+    def __init__(self, data, player_names):
+        self.player_names = player_names
         self.achieve_frame = None
         self.player_achievements = data[1]
         self.player_id = data[0]
@@ -25,8 +26,7 @@ class AchievementsWindow:
                                      fg="black")
         player_name_label.pack(pady=10)
 
-        player_names = db.get_all_player_names()
-        self.player_name_combobox = ttk.Combobox(self.root, values=player_names, font=("Arial", 15), width=15,
+        self.player_name_combobox = ttk.Combobox(self.root, values=self.player_names, font=("Arial", 15), width=15,
                                                  justify="center", state="readonly", background="lightgreen",
                                                  foreground="black")
         self.player_name_combobox.set("Wybierz gracza")
@@ -94,5 +94,5 @@ class AchievementsWindow:
                           background="lightgreen", foreground="black").grid(row=i + 1, column=2, padx=10,
                                                                             pady=5, sticky="w")
         else:
-            ttk.Label(self.achieve_frame, text="Gracz nie posiada żadnych osiągnięć!", font=("Arial", 15, "bold"),
-                      background="#c1ffc1", foreground="black").grid(row=0, column=1, padx=10, pady=5, sticky="w")
+            ttk.Label(self.achieve_frame, text="Brak osiągnięć!", font=("Arial", 15, "bold"), background="#c1ffc1",
+                      foreground="black").grid(row=0, column=1, padx=10, pady=5, sticky="w")

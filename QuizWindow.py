@@ -127,7 +127,7 @@ class QuizWindow:
         if time_elapsed >= self.time_limit:
             messagebox.showinfo("Czas minął", "Przekroczyłeś limit czasu!")
             self.destroy_window()
-            self.player_data = self.event.end_event(self.player_id, time_elapsed=time_elapsed)
+            self.player_data = self.event.end_event(self.player_id, time_elapsed=round(time_elapsed, 3))
             self.end_window()
         else:
             self.root.after(10, self.check_time_limit)

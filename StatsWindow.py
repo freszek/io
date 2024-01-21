@@ -4,7 +4,8 @@ from database_setup import db
 
 
 class StatsWindow:
-    def __init__(self, stats):
+    def __init__(self, stats, player_names):
+        self.player_names = player_names
         self.player_id = stats[0]
         self.stats_frame = None
         self.player_stats = stats[1]
@@ -23,8 +24,7 @@ class StatsWindow:
         player_name_label = tk.Label(self.root, text="Statystyki", font=("Arial", 15, "bold"), bg="#c1ffc1")
         player_name_label.pack(pady=10)
 
-        player_names = db.get_all_player_names()
-        self.player_name_combobox = ttk.Combobox(self.root, values=player_names, font=("Arial", 15),
+        self.player_name_combobox = ttk.Combobox(self.root, values=self.player_names, font=("Arial", 15),
                                                  state="readonly", background="lightgreen")
         self.player_name_combobox.set("Wybierz gracza")
         self.player_name_combobox.pack(pady=10)
@@ -80,7 +80,7 @@ class StatsWindow:
                 l_poziom.grid(row=i + 1, column=2, padx=10, pady=5, sticky="w")
                 labels.append(l_poziom)
 
-            if len(self.player_stats) > 0:
+            if len(self.player_stats) > 1:
                 last = len(self.player_stats)
                 ttk.Button(self.stats_frame, text="Sortuj po wyniku", style="Stats.TButton",
                            command=lambda: self.sort_statistics(0, labels)).grid(row=last + 1, column=0, pady=5)

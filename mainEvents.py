@@ -2,9 +2,11 @@ import pygame
 from QuizWindow import QuizWindow
 from StatsWindow import StatsWindow
 from AchievementsWindow import AchievementsWindow
+from mglobals import PLAYER_OBJ
 
 
 def game(player_name, width=1200, height=800):
+    players = [player.player_name for player in PLAYER_OBJ.values()]
     session_data = [[] for _ in range(3)]
     pygame.init()
 
@@ -44,14 +46,14 @@ def game(player_name, width=1200, height=800):
                         quiz_clicked = True
                     elif stats_button_rect.collidepoint(mouse_x, mouse_y):
                         try:
-                            StatsWindow(session_data[0:2])
+                            StatsWindow(session_data[0:2], players)
                         except IndexError:
-                            print("Błąd")
+                            screen.blit(overlay_surface, stats_button_rect.topleft)
                     elif achievement_button_rect.collidepoint(mouse_x, mouse_y):
                         try:
-                            AchievementsWindow([session_data[0], session_data[2]])
+                            AchievementsWindow([session_data[0], session_data[2]], players)
                         except IndexError:
-                            print("Błąd")
+                            screen.blit(overlay_surface, achievement_button_rect.topleft)
                     elif exit_button_rect.collidepoint(mouse_x, mouse_y):
                         running = False
 
