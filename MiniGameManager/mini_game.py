@@ -25,4 +25,3 @@ class MiniGame:
         elif self.minigameName == "DoorGame":
             game = DoorGame()
         return game.run_game()
-
