@@ -1,3 +1,5 @@
+from tkinter import messagebox
+
 import pygame
 import subprocess
 import sys
@@ -18,6 +20,7 @@ background_image = pygame.transform.scale(background_image, (width, height))
 button_background_color = (144, 238, 144)
 dark_green = (0, 100, 0)
 light_green = (96, 160, 96)
+dao = BoardDao()
 
 font = pygame.font.SysFont("Yu Gothic UI", 30, bold=True)
 
@@ -47,14 +50,18 @@ def create_button(text, position, command):
 
 
 def play_game():
-    subprocess.run(["python", "GameMain/main_board.py", str(sys.argv[1]), str(sys.argv[2])])
-    pygame.quit()
-    sys.exit()
+    avatar_img = dao.get_board_entry_by_user_login(str(sys.argv[1]))['avatar_img']
+    if avatar_img is None:
+        messagebox.showinfo("Character Selection", "Najpierw wybierz postać!")
+        return
+    else:
+        subprocess.run(["python", "GameMain/main_board.py", str(sys.argv[1]), str(sys.argv[2])])
+        pygame.quit()
+        sys.exit()
 
 
 def character_selection():
-    dao = BoardDao()
-    player_selector = PlayerAvatar(mglobals.DISPLAY_W, mglobals.DISPLAY_H, 6)
+    player_selector = PlayerAvatar(800, 600, 6)
     selected_player_avatar = player_selector.choose_player()
     dao.update_avatar_image(str(sys.argv[1]), selected_player_avatar)
     print(selected_player_avatar)
@@ -63,7 +70,7 @@ def character_selection():
 
 def game_rules():
     display_rules()
-    pygame.quit()
+    pygame.display.flip()
 
 
 logo_image = pygame.image.load("logo.png")

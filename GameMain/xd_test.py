@@ -2,7 +2,7 @@ import pygame
 import sys
 
 class PlayerAvatar:
-    def __init__(self, screen_width, screen_height, num_players):
+    def __init__(self, screen_width, screen_height, num_players, selected_players):
         pygame.init()
         self.screen_width = screen_width
         self.screen_height = screen_height
@@ -11,7 +11,8 @@ class PlayerAvatar:
 
         # Load player images and resize
         self.num_players = num_players
-        self.player_filenames = [f"GameMain/pics/p{i}.png" for i in range(1, num_players + 1)]
+        self.player_filenames = [f"pics/p{i}.png" for i in range(1, num_players + 1)]
+        self.selected_players = selected_players  # List of selected players
         self.player_images = [pygame.transform.scale(pygame.image.load(filename).convert(), (30, 45)) for filename in
                               self.player_filenames]
 
@@ -33,18 +34,21 @@ class PlayerAvatar:
         while True:
             self.screen.fill(self.white)
 
-            # Display player images
+            # Display all player images
             for i, player_image in enumerate(self.player_images):
                 x = i * 120 + 50
                 y = self.screen_height // 2 - 50
                 self.screen.blit(player_image, (x, y))
 
-            # Draw a rectangle around the selected player
-            pygame.draw.rect(self.screen, (255, 0, 0), self.selected_player_rect, 3)
+                # Draw a rectangle around the selected player if available
+                if i == self.selected_player and self.player_filenames[i] not in self.selected_players:
+                    pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect(x - 5, y - 5, 35, 50), 3)
 
             # Display instructions
             instructions = self.font.render("Select a player (Use arrows, Press Enter to confirm):", True, self.black)
             self.screen.blit(instructions, (50, 30))
+
+            pygame.display.flip()
 
             # Event handling
             for event in pygame.event.get():
@@ -55,12 +59,21 @@ class PlayerAvatar:
                     if event.key == pygame.K_LEFT:
                         self.selected_player = max(self.selected_player - 1, 0)
                     elif event.key == pygame.K_RIGHT:
-                        self.selected_player = min(self.selected_player + 1, self.num_players - 1)
-                    elif event.key == pygame.K_RETURN:
+                        self.selected_player = min(self.selected_player + 1, len(self.player_images) - 1)
+                    elif event.key == pygame.K_RETURN and self.player_filenames[self.selected_player] not in self.selected_players:
                         self.selected_player_avatar = self.player_filenames[self.selected_player]
                         return self.selected_player_avatar
 
-            # Update the position of the rectangle based on the selected player
-            self.selected_player_rect.x = self.selected_player * 120 + 50
+# Example usage:
+# Assume selected_players_list is the list obtained from the other file
+selected_players_list = ["pics/p1.png", "pics/p6.png"]
 
-            pygame.display.flip()
+def main():
+    pygame.init()
+    player_selector = PlayerAvatar(800, 600, 6, selected_players_list)
+    selected_avatar = player_selector.choose_player()
+    print(f"Selected Avatar: {selected_avatar}")
+    pygame.quit()
+
+if __name__ == "__main__":
+    main()

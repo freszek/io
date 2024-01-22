@@ -1,3 +1,5 @@
+from tkinter import messagebox
+
 import pygame
 
 from GameMain import mainboard_ui
@@ -9,6 +11,26 @@ from BoardDao import BoardDao
 def roll():
     val = mglobals.DICEOBJ.roll_dice()
     return val
+
+def check_round_hierarchy(players, currentplayer):
+    for player in players:
+        if player.round_number < currentplayer.round_number:
+            can_roll = False
+            break
+        else:
+            can_roll = True
+    return can_roll
+
+
+def get_players_who_need_to_roll(players, currentplayer):
+    players_to_roll = "musi rzucić jeszcze:"
+    player_names = []
+    for player in players:
+        if player['round_number'] < currentplayer['round_number']:
+            player_names.append(str(player['player_name']))
+    players_to_roll += ", ".join(player_names)
+
+    return players_to_roll
 
 def round_loop(login, user_id):
 
@@ -22,7 +44,7 @@ def round_loop(login, user_id):
     players = []
     for i in range(0, num_of_players):
         player = Player(player_data[i]['user_login'],
-                        player_data[i]['board_position'], player_data[i]['avatar_img'], user_id)
+                        player_data[i]['board_position'], player_data[i]['avatar_img'], user_id, player_data[i]['round_number'])
         players.append(player)
         mglobals.PLAYER_OBJ[player_data[i]['user_login']] = players[i]
         players[i].pm.set_starting_position()
@@ -33,7 +55,7 @@ def round_loop(login, user_id):
     mglobals.PLAYER_NAME_SPRITE[currentplayer.player_name].set_x_y(350, 120)
     mglobals.CURRENTPLAYER_IMG[currentplayer.player_name].set_x_y(480, 115)
 
-    can_roll = True
+    can_roll = check_round_hierarchy(players, currentplayer)
 
     while True:
         for event in pygame.event.get():
@@ -48,12 +70,17 @@ def round_loop(login, user_id):
                     val = roll()
                     dao.update_player_position(login, currentplayer.pm.position + val)
                     currentplayer.pm.advance(val)
+                    currentplayer.round_number += 1
+                    dao.update_player_round(login, currentplayer.round_number)
                     for player in players:
                         if player.player_name != login:
                             player.pm.render()
-                    can_roll = False
+                    can_roll = check_round_hierarchy(players, currentplayer)
+                elif event.key == pygame.K_d and can_roll == False:
+                    mess = get_players_who_need_to_roll(players, currentplayer)
+                    messagebox.showinfo("Character Selection", f"Nie twoja kolej, {mess}!")
 
-                # Next player move
+                # oteher options
                 elif event.key == pygame.K_n:
                         # utils.draw_board()
                         # currentplayer.pm.render()

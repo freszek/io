@@ -42,8 +42,6 @@ class PlayerMovement:
 
 
     def advance(self, count):
-        currentplayer = mglobals.PLAYER_OBJ[self.player_name]
-        prev_pos = self.position
         old_position = self.position
         self.position = (self.position + count) % mglobals.BOARD_SQUARES
         self.reposition()
@@ -195,8 +193,9 @@ class Player:
     RECT_WIDTH = 65
     SQ_HEIGHT_WIDTH = 106
 
-    def __init__(self, player_name, initial_position, player_img, player_id):
+    def __init__(self, player_name, initial_position, player_img, player_id, round_number):
         self.player_name = player_name
+        self.round_number = round_number
         self.color = mglobals.PLAYER_ONE_COLOR \
             if self.player_name == player_name \
             else mglobals.PLAYER_TWO_COLOR

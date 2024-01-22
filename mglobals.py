@@ -72,12 +72,8 @@ DICEOBJ = None
 DICE_NUMBER_MAP = {}
 DICE_DISPLAY = pygame.sprite.Group()
 
-PROPERTY_NAME_SPRITE_MAP = {}
-PROPERTY_DISPLAYS = pygame.sprite.Group()
+
 CENTRE_DISPLAYS = pygame.sprite.Group()
-POBJECT_MAP = {}
-PNAME_OBJ_MAP = {}
-PROP_COLOR_INDEX = collections.defaultdict(list)
 INDEX_PROPPIC_MAP = {}
 
 
@@ -92,6 +88,7 @@ def init_pygame():
     global GD, CLK
     pygame.init()
     GD = pygame.display.set_mode((DISPLAY_W, DISPLAY_H))
+    GD.fill(WHITE)
     pygame.display.set_caption('Green Game')
     CLK = pygame.time.Clock()
     pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP])

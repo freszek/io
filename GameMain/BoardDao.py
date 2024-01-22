@@ -13,16 +13,17 @@ class BoardDao:
             user_login TEXT NOT NULL,
             board_position INTEGER,
             avatar_img TEXT,
+            round_number INTEGER,
             FOREIGN KEY (user_login) REFERENCES users(login)
         )
         '''
         self.conn.execute(query)
         self.conn.commit()
 
-    def add_board_entry(self, user_login, board_position, avatar_img):
-        query = 'INSERT INTO board (user_login, board_position, avatar_img) VALUES (?, ?, ?)'
+    def add_board_entry(self, user_login, board_position, avatar_img, round_number):
+        query = 'INSERT INTO board (user_login, board_position, avatar_img, round_number) VALUES (?, ?, ?, ?)'
         try:
-            self.conn.execute(query, (user_login, board_position, avatar_img))
+            self.conn.execute(query, (user_login, board_position, avatar_img, round_number))
             self.conn.commit()
             return True
         except Exception as e:
@@ -39,7 +40,8 @@ class BoardDao:
                 'id': result[0],
                 'user_login': result[1],
                 'board_position': result[2],
-                'avatar_img': result[3]
+                'avatar_img': result[3],
+                'round_number': result[4]
             }
         else:
             return None
@@ -54,6 +56,15 @@ class BoardDao:
             print(f"Error updating player position: {e}")
             return False
 
+    def update_player_round(self, user_login, new_round_number):
+        query = 'UPDATE board SET round_number = ? WHERE user_login = ?'
+        try:
+            self.conn.execute(query, (new_round_number, user_login))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error updating player round: {e}")
+            return False
     def get_user_count(self):
         query = 'SELECT COUNT(*) FROM board'
         cursor = self.conn.execute(query)
@@ -75,7 +86,8 @@ class BoardDao:
                 'id': result[0],
                 'user_login': result[1],
                 'board_position': result[2],
-                'avatar_img': result[3]
+                'avatar_img': result[3],
+                'round_number': result[4]
             })
 
         return players

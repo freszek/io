@@ -54,7 +54,8 @@ class SessionController:
         self.board_dao.add_board_entry(
             user_login=self.session_user.login,
             board_position=0,
-            avatar_img=None
+            avatar_img=None,
+            round_number=0
         )
 
     def check_if_logged(self) -> bool:
