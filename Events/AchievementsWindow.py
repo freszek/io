@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from database_setup import db
+from Database.database_setup import db
 
 
 class AchievementsWindow:

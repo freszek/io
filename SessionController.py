@@ -1,6 +1,6 @@
 from GameMain.BoardDao import BoardDao
-from UserDao import UserDao
-from Userr import Userr as User
+from User.UserDao import UserDao
+from User.Userr import Userr as User
 
 
 class SessionController:

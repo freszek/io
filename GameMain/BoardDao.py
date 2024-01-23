@@ -1,5 +1,6 @@
 import sqlite3
 
+
 class BoardDao:
     def __init__(self, db_path="users.db"):
         self.db_path = db_path
@@ -65,6 +66,7 @@ class BoardDao:
         except Exception as e:
             print(f"Error updating player round: {e}")
             return False
+
     def get_user_count(self):
         query = 'SELECT COUNT(*) FROM board'
         cursor = self.conn.execute(query)

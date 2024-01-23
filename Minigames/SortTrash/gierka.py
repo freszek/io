@@ -53,7 +53,7 @@ class Game:
         self.containers_group = pygame.sprite.Group()
         self.trash_group = pygame.sprite.Group()
 
-        self.max_score = 300
+        self.max_score = 100
         self.start_time = 0
         self.elapsed_time = 0
         self.game_running = True

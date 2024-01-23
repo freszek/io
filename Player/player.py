@@ -6,8 +6,8 @@ import mglobals
 
 from GameMain import utils
 from MiniGameManager.mini_game import MiniGame
-from UserDao import UserDao
-from mainEvents import game
+from User.UserDao import UserDao
+from Events.mainEvents import game
 
 
 

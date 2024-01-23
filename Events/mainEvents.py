@@ -1,7 +1,7 @@
 import pygame
-from QuizWindow import QuizWindow
-from StatsWindow import StatsWindow
-from AchievementsWindow import AchievementsWindow
+from Events.QuizWindow import QuizWindow
+from Events.StatsWindow import StatsWindow
+from Events.AchievementsWindow import AchievementsWindow
 
 
 def game():

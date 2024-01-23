@@ -1,5 +1,5 @@
 from SessionController import SessionController
-from UserDao import UserDao
+from User.UserDao import UserDao
 import pygame
 import sys
 from FriendList import FriendList, Button

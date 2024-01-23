@@ -1,6 +1,6 @@
 import pygame
 
-from UserDao import UserDao
+from User.UserDao import UserDao
 
 
 class Button:

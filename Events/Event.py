@@ -1,7 +1,7 @@
-from DifficultyLevel import DifficultyLevel
-from EventInterface import EventInterface
-from DifficultyLevel import to_string
-from database_setup import db
+from Events.DifficultyLevel import DifficultyLevel
+from Events.EventInterface import EventInterface
+from Events.DifficultyLevel import to_string
+from Database.database_setup import db
 import time
 
 

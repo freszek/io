@@ -1,9 +1,9 @@
 import random
 import tkinter as tk
 from tkinter import ttk, messagebox
-from DifficultyLevel import DifficultyLevel
-from Event import Event
-from database_setup import db
+from Events.DifficultyLevel import DifficultyLevel
+from Events.Event import Event
+from Database.database_setup import db
 
 
 class QuizWindow:

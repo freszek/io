@@ -125,4 +125,5 @@ class GameRulesApp:
 
             pygame.display.flip()
             game_rules.clock.tick(FPS)
+            game_rules.screen.fill(WHITE)
 

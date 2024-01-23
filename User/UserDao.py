@@ -2,7 +2,7 @@ import hashlib
 import sqlite3
 from datetime import datetime, timedelta
 from typing import List
-from Userr import Userr as User
+from User.Userr import Userr as User
 
 
 class Points:

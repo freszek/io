@@ -1,6 +1,5 @@
 import pygame
 import sys
-from tkinter import messagebox
 
 class RoundEndedInfo:
     def __init__(self, round_number):
