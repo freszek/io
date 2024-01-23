@@ -92,6 +92,19 @@ class BoardDao:
 
         return players
 
+    def get_all_players_avatars_except_current(self, current_user_login):
+        try:
+            query = 'SELECT avatar_img FROM board WHERE user_login != ?'
+            cursor = self.conn.execute(query, (current_user_login,))
+            results = cursor.fetchall()
+
+            avatars = [result[0] for result in results]
+
+            return avatars
+        except Exception as e:
+            print(f"Error fetching avatars: {e}")
+            return []
+
     def update_avatar_image(self, user_login, new_avatar_img):
         query = 'UPDATE board SET avatar_img = ? WHERE user_login = ?'
         try:

@@ -61,7 +61,8 @@ def play_game():
 
 
 def character_selection():
-    player_selector = PlayerAvatar(800, 600, 6)
+    chosen = dao.get_all_players_avatars_except_current(str(sys.argv[1]))
+    player_selector = PlayerAvatar(800, 600, 6, chosen)
     selected_player_avatar = player_selector.choose_player()
     dao.update_avatar_image(str(sys.argv[1]), selected_player_avatar)
     print(selected_player_avatar)

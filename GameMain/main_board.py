@@ -21,7 +21,6 @@ def main():
     dao = BoardDao()
     selected_player_avatar = dao.get_board_entry_by_user_login(current_user_login)['avatar_img']
     mglobals.P1_IMG = pygame.image.load(selected_player_avatar)
-
     round.round_loop(current_user_login, current_user_id)
     pygame.quit()
     quit()

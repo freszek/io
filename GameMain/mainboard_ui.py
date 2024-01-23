@@ -52,14 +52,12 @@ class PRINTUI(pygame.sprite.Sprite):
     def update(self):
         self.rect.x, self.rect.y = self.x, self.y
 
-
 def init_printui(login):
-    for player, color in zip([login, mglobals.PLAYER_TWO], \
-                             [mglobals.PLAYER_ONE_COLOR, mglobals.PLAYER_TWO_COLOR]):
-        temp_p = PRINTUI(player, color, 'mid', True)
-        mglobals.PLAYER_NAME_DISPLAY.add(temp_p)
-        mglobals.PLAYER_NAME_SPRITE[player] = temp_p
-        temp = PRINTUI()
-        temp.image = mglobals.P1_IMG
-        mglobals.PLAYER_NAME_DISPLAY.add(temp)
-        mglobals.CURRENTPLAYER_IMG[player] = temp
+    color = mglobals.PLAYER_ONE_COLOR  # Assuming one player always uses PLAYER_ONE_COLOR
+    temp_p = PRINTUI(login, color, 'mid', True)
+    mglobals.PLAYER_NAME_DISPLAY.add(temp_p)
+    mglobals.PLAYER_NAME_SPRITE[login] = temp_p
+    temp = PRINTUI()
+    temp.image = mglobals.P1_IMG
+    mglobals.PLAYER_NAME_DISPLAY.add(temp)
+    mglobals.CURRENTPLAYER_IMG[login] = temp
