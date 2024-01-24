@@ -630,7 +630,7 @@ scroll_offset = 0
 scroll_speed = 30
 
 
-def render_events_table(screen, users, param=True):
+def render_events_table(screen, users, param=1):
     from database_setup import db
 
     def render_headers(sc, f, h, c_width, t_x=150, t_y=110, row_h=50, t_col=(0, 0, 0)):
@@ -648,25 +648,24 @@ def render_events_table(screen, users, param=True):
                 button_text_rect = button_text.get_rect(center=button_rect.center)
                 sc.blit(button_text, button_text_rect)
 
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+        for ev in pygame.event.get():
+            if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
                 check_button_click(mouse_pos)
 
     def render_dropdown(sc, f, u):
         global ids, sorting_criteria
         user_rect = pygame.Rect(0, 120, 150, 30)
-        pygame.draw.rect(sc, (255, 255, 255), user_rect)
-        pygame.draw.rect(sc, (0, 0, 0), user_rect, 2)
         user_rect.y -= user_rect.height
         for el in u:
             user_rect.y += user_rect.height
             option_text = f.render(el.get('login'), True, (0, 0, 0))
             option_text_rect = option_text.get_rect(center=user_rect.center)
-            sc.blit(option_text, option_text_rect)
             if user_rect.collidepoint(pygame.mouse.get_pos()):
                 sorting_criteria = None
                 ids = el.get('id')
+                pygame.draw.rect(screen, (255, 0, 0), user_rect, 2)
+            sc.blit(option_text, option_text_rect)
 
     def check_button_click(x_y_mos):
         global sorting_criteria
@@ -675,11 +674,11 @@ def render_events_table(screen, users, param=True):
             if button_rect.collidepoint(x_y_mos):
                 sorting_criteria = header
 
-    def handle_scroll(event):
+    def handle_scroll(ev):
         global scroll_offset
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 4:
+        if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 4:
             scroll_offset = max(0, scroll_offset - 1)
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 5:
+        elif ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 5:
             scroll_offset += 1
 
     def render_scrollbar(sc, total_r, visible_r, t_x, t_y, t_height):
@@ -707,14 +706,14 @@ def render_events_table(screen, users, param=True):
 
     pygame.draw.rect(screen, table_color, (table_x, table_y, table_width, table_height))
 
-    render_dropdown(screen, font, [{'id': user.id, 'login': user.login} for user in users])
-
     global ids, sorting_criteria, scroll_offset
 
     for event in pygame.event.get():
         handle_scroll(event)
 
-    if param:
+    if param == 1:
+        render_dropdown(screen, font, [{'id': user.id, 'login': user.login} for user in users])
+
         col_widths = [150, 350, 100]
 
         headers = ['Nazwa osiągnięcia', 'Opis', 'Liczba graczy']
@@ -738,7 +737,9 @@ def render_events_table(screen, users, param=True):
                         text_rect = text.get_rect(center=col_rect.center)
                         screen.blit(text, text_rect)
                 render_scrollbar(screen, total_rows, visible_rows, table_x, table_y, table_height)
-    else:
+    elif param == 0:
+        render_dropdown(screen, font, [{'id': user.id, 'login': user.login} for user in users])
+
         col_widths = [300, 100, 100, 100]
 
         headers = ['Nazwa eventu', 'Wynik', 'Czas', 'Poziom']
@@ -763,6 +764,28 @@ def render_events_table(screen, users, param=True):
                         text_rect = text.get_rect(center=col_rect.center)
                         screen.blit(text, text_rect)
                 render_scrollbar(screen, total_rows, visible_rows, table_x, table_y, table_height)
+    else:
+        col_widths = [200, 400]
+
+        headers = ['Nazwa osiągnięcia', 'Opis']
+
+        render_headers(screen, font, headers, col_widths)
+
+        achievements = [db.get_achievement(i) for i in range(1, 11)]
+        if len(achievements) > 0:
+            total_rows = len(achievements)
+            visible_rows = table_height // row_height
+            for i, achievement in enumerate(achievements[scroll_offset:scroll_offset + visible_rows]):
+                achievement = achievement[1:]
+                for j, data_point in enumerate(achievement):
+                    col_rect = pygame.Rect(table_x + sum(col_widths[:j]), table_y + (i + 1) * row_height,
+                                           col_widths[j], row_height)
+                    pygame.draw.rect(screen, (255, 255, 255), col_rect)
+                    text = font.render(str(data_point), True, text_color)
+                    text_rect = text.get_rect(center=col_rect.center)
+                    screen.blit(text, text_rect)
+            render_scrollbar(screen, total_rows, visible_rows, table_x, table_y, table_height)
+
 
 # Add this function wherever it fits in your code.
 
@@ -832,6 +855,7 @@ def ranking(current_user):
     friends_ranking = False  # Initially shows the general ranking
     statistics_opened = False
     achievements_opened = False
+    achievements_all_opened = False
 
     if not ranking_opened:
         print("Ranking")
@@ -849,6 +873,8 @@ def ranking(current_user):
         friends_button_rect = pygame.Rect(530, 10, 150, 40)  # Przycisk dla rankingu znajomych
         statistics_button_rect = pygame.Rect(50, 60, 150, 40)  # Przycisk do statystyk
         achievements_button_rect = pygame.Rect(210, 60, 150, 40)  # Przycisk do osiagniec
+        achievements_all_button_rect = pygame.Rect(370, 60, 200, 40)  # Przycisk dla wszystkich osiągnięć
+
         font = pygame.font.SysFont(None, 24)
 
         user_dao = UserDao()
@@ -866,32 +892,45 @@ def ranking(current_user):
                         ranking_opened = False
                         statistics_opened = False
                         achievements_opened = False
+                        achievements_all_opened = False
                     elif daily_button_rect.collidepoint(event.pos):
                         daily_ranking = True
                         statistics_opened = False
                         achievements_opened = False
+                        achievements_all_opened = False
                     elif weekly_button_rect.collidepoint(event.pos):
                         daily_ranking = False
                         statistics_opened = False
                         achievements_opened = False
+                        achievements_all_opened = False
                     elif general_button_rect.collidepoint(event.pos):
                         friends_ranking = False
                         statistics_opened = False
                         achievements_opened = False
+                        achievements_all_opened = False
                     elif friends_button_rect.collidepoint(event.pos):
                         friends_ranking = True
                         statistics_opened = False
                         achievements_opened = False
+                        achievements_all_opened = False
                     elif statistics_button_rect.collidepoint(event.pos):
                         daily_ranking = False
                         friends_ranking = False
                         achievements_opened = False
                         statistics_opened = True
+                        achievements_all_opened = False
                     elif achievements_button_rect.collidepoint(event.pos):
                         statistics_opened = False
                         daily_ranking = False
                         friends_ranking = False
                         achievements_opened = True
+                        achievements_all_opened = False
+                    elif achievements_all_button_rect.collidepoint(event.pos):
+                        statistics_opened = False
+                        daily_ranking = False
+                        friends_ranking = False
+                        achievements_opened = False
+                        achievements_all_opened = True
 
             ranking_screen.fill((255, 255, 255))
 
@@ -901,6 +940,8 @@ def ranking(current_user):
             render_button(ranking_screen, font, "Ranking znajomych", friends_button_rect, friends_ranking)
             render_button(ranking_screen, font, "Statystyki", statistics_button_rect, statistics_opened)
             render_button(ranking_screen, font, "Osiągnięcia", achievements_button_rect, achievements_opened)
+            render_button(ranking_screen, font, "Wszystkie osiągnięcia", achievements_all_button_rect,
+                          achievements_all_opened)
             pygame.draw.rect(ranking_screen, (255, 0, 0), close_button_rect)
 
             if friends_ranking:
@@ -909,13 +950,15 @@ def ranking(current_user):
             else:
                 ranking_data = user_dao.get_ranking_data(user_list, 'daily' if daily_ranking else 'weekly')
 
-            if not (achievements_opened or statistics_opened):  # zeby nie bylo wyrenderowanego leadboardu
+            if not (achievements_opened or statistics_opened or achievements_all_opened):  # zeby nie bylo wyrenderowanego leadboardu
                 render_ranking(ranking_screen, ranking_data, font, current_user, daily_ranking)
 
             if statistics_opened:
-                render_events_table(ranking_screen, user_list, False)
+                render_events_table(ranking_screen, user_list, param=0)
             elif achievements_opened:
-                render_events_table(ranking_screen, user_list)
+                render_events_table(ranking_screen, user_list, param=1)
+            elif achievements_all_opened:
+                render_events_table(ranking_screen, user_list, param=2)
 
             pygame.display.flip()
 

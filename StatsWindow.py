@@ -44,8 +44,17 @@ class StatsWindow:
         self.clear_labels()
         player_name = self.player_name_combobox.get()
         if player_name and player_name != "Wybierz gracza":
-            if db.get_player_id(player_name) == self.player_id:
+            player_id = db.get_player_id(player_name)
+            if player_id != -1 and self.player_id is not None and player_id == self.player_id:
                 self.show_statistics()
+            elif player_id != -1 and self.player_id is None:
+                self.show_statistics()
+            elif player_id != -1 and self.player_id is not None:
+                ttk.Label(self.stats_frame, text="Brak statystyk!", font=("Arial", 15, "bold"), background="#c1ffc1",
+                          foreground="black").grid(row=0, column=1, padx=10, pady=5, sticky="w")
+            else:
+                ttk.Label(self.stats_frame, text="Nie ma takiego gracza!", font=("Arial", 15, "bold"),
+                          background="#c1ffc1", foreground="black").grid(row=0, column=1, padx=10, pady=5, sticky="w")
         else:
             ttk.Label(self.stats_frame, text="Wybierz gracza!", font=("Arial", 15, "bold"), background="#c1ffc1",
                       foreground="black").grid(row=0, column=1, padx=10, pady=5, sticky="w")

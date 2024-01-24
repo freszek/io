@@ -12,6 +12,7 @@ class QuizWindow:
         db_event = db.get_event(random.randint(1, 10))
         event = Event(db_event[0], db_event[1])
 
+        self.event = event
         self.player_id = db.get_player_id(player_name)
         self.player_data = []
 
@@ -34,7 +35,6 @@ class QuizWindow:
         self.question_label = None
         self.current_question = None
         self.questions = None
-        self.event = event
         self.root = tk.Tk()
         self.root.title(f"{event.get_name()} Quiz")
         self.root.geometry("900x400")
@@ -124,7 +124,7 @@ class QuizWindow:
 
     def check_time_limit(self):
         time_elapsed = time.perf_counter() - self.start_time
-        if time_elapsed >= self.time_limit:
+        if time_elapsed >= self.time_limit and self.current_question != len(self.questions):
             messagebox.showinfo("Czas minął", "Przekroczyłeś limit czasu!")
             self.destroy_window()
             self.player_data = self.event.end_event(self.player_id, time_elapsed=round(time_elapsed, 3))

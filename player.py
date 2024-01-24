@@ -64,7 +64,9 @@ class PlayerMovement:
         self.result_game += self.result_game"""
 # =============================================================================
         if old_position + count >= mglobals.BOARD_SQUARES:
-            game(self.player_name)
+            event_score = game(self.player_name)
+            self.result_game += event_score
+            print(event_score)
         utils.draw_board()
         self.render()
 

@@ -8,6 +8,7 @@ from mglobals import PLAYER_OBJ
 def game(player_name, width=1200, height=800):
     players = [player.player_name for player in PLAYER_OBJ.values()]
     session_data = [[] for _ in range(3)]
+    score = -1
     pygame.init()
 
     screen_w, screen_h = width, height
@@ -42,7 +43,11 @@ def game(player_name, width=1200, height=800):
                     mouse_x, mouse_y = event.pos
                     if quiz_button_rect.collidepoint(mouse_x, mouse_y) and not quiz_clicked:
                         quiz = QuizWindow(player_name)
-                        session_data = quiz.player_data
+                        try:
+                            session_data = quiz.player_data
+                            score = session_data[1][0][2]
+                        except IndexError:
+                            score = 0
                         quiz_clicked = True
                     elif stats_button_rect.collidepoint(mouse_x, mouse_y):
                         try:
@@ -87,4 +92,4 @@ def game(player_name, width=1200, height=800):
         pygame.display.flip()
         clock.tick(60)
 
-    return 0
+    return score
