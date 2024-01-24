@@ -47,6 +47,14 @@ class BoardDao:
         else:
             return None
 
+    def get_users_with_current_round(self, round_number):
+        query = 'SELECT user_login FROM board WHERE round_number = ?'
+        cursor = self.conn.execute(query, (round_number,))
+        results = cursor.fetchall()
+
+        users_with_current_round = [result[0] for result in results]
+        return users_with_current_round
+
     def update_player_position(self, user_login, new_position):
         query = 'UPDATE board SET board_position = ? WHERE user_login = ?'
         try:

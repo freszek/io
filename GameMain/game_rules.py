@@ -1,129 +1,91 @@
 import pygame
-
-# Constants
-WIDTH, HEIGHT = 1200, 800
-FPS = 60
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-
-class ScrollableText:
-    def __init__(self, text, x, y, width, height, font_size, color):
-        self.text = text
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.font_size = font_size
-        self.color = color
-        self.font = pygame.font.Font(None, self.font_size)
-        self.render_text()
-
-    def render_text(self):
-        lines = [self.text[i:i + 40] for i in range(0, len(self.text), 40)]
-        self.rendered_text = [self.font.render(line, True, self.color) for line in lines]
-
-    def draw(self, screen):
-        for i, line in enumerate(self.rendered_text):
-            screen.blit(line, (self.x, self.y + i * self.font_size))
-
-class ScrollButton:
-    def __init__(self, x, y, width, height, color, text, callback):
-        self.rect = pygame.Rect(x, y, width, height)
-        self.color = color
-        self.text = text
-        self.callback = callback
-
-    def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect)
-        font = pygame.font.Font(None, 36)
-        text = font.render(self.text, True, WHITE)
-        text_rect = text.get_rect(center=self.rect.center)
-        screen.blit(text, text_rect)
-
-    def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.rect.collidepoint(event.pos):
-                self.callback()
+import sys
 
 class GameRules:
-    def __init__(self):
-        pygame.init()
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Green Game")
-        self.clock = pygame.time.Clock()
-        self.scroll_up_button = ScrollButton(1050, 50, 50, 30, WHITE, "Up", self.scroll_up)
-        self.scroll_down_button = ScrollButton(1050, HEIGHT - 50, 50, 30, WHITE, "Down", self.scroll_down)
-        self.rules, self.authors = self.load_rules_from_file()
-        self.scroll_y_rules = 0
-        self.scroll_y_authors = 0
+    def __init__(self, text, window_width=800, window_height=600):
+        self.text = text
+        self.window_width = window_width
+        self.window_height = window_height
 
-    def load_rules_from_file(self):
-        rules = []
-        authors = []
-        with open("GameMain/game_rules.txt", "r", encoding="utf-8") as file:
-            section = None
-            for line in file:
-                line = line.strip()
-                if line == "Game Rules:":
-                    section = "rules"
-                elif line == "Authors:":
-                    section = "authors"
-                elif section == "rules":
-                    rules.append(line)
-                elif section == "authors":
-                    authors.append(line)
-        return rules, authors
+        self.font = pygame.font.Font(None, 28)
+        self.text_lines = self.text.split('\n')
+        self.text_height = len(self.text_lines) * 30  # assuming each line height is 30 pixels
 
-    def display_rules(self):
-        font = pygame.font.Font(None, 36)
-        text = font.render("Game Rules:", True, WHITE)
-        self.screen.blit(text, (50, 50 + self.scroll_y_rules))
+        self.scrollbar_width = 20
+        self.scroll_position = 0
 
-        for i, rule in enumerate(self.rules):
-            rule_text = font.render(f"{rule}", True, WHITE)
-            self.screen.blit(rule_text, (50, 100 + i * 30 + self.scroll_y_rules))
+        self.window = pygame.display.set_mode((self.window_width, self.window_height))
+        pygame.display.set_caption("Text Scrollable Scene")
 
-    def display_authors(self):
-        font = pygame.font.Font(None, 36)
-        text = font.render("Authors:", True, WHITE)
-        self.screen.blit(text, (50, 450 + self.scroll_y_authors))
+    def draw(self):
+        self.window.fill((0, 255, 0))  # Green background
 
-        for i, author in enumerate(self.authors):
-            author_text = font.render(f"{i + 1}. {author}", True, WHITE)
-            self.screen.blit(author_text, (50, 500 + i * 30 + self.scroll_y_authors))
+        # Draw text with padding
+        for i, line in enumerate(self.text_lines):
+            text_surface = self.font.render(line, True, (0, 0, 0))
+            self.window.blit(text_surface, (20, 20 + i * 30 - self.scroll_position))
 
-    def scroll_up(self):
-        self.scroll_y_rules = max(self.scroll_y_rules - 30, 0)
-        self.scroll_y_authors = max(self.scroll_y_authors - 30, 0)
+        # Draw scrollbar
+        pygame.draw.rect(self.window, (200, 200, 200),
+                         (self.window_width - self.scrollbar_width, 0, self.scrollbar_width, self.window_height))
+        scrollbar_height = self.window_height * self.window_height / self.text_height
+        pygame.draw.rect(self.window, (100, 100, 100),
+                         (self.window_width - self.scrollbar_width, self.scroll_position * self.window_height / self.text_height,
+                          self.scrollbar_width, scrollbar_height))
 
-    def scroll_down(self):
-        max_scroll_rules = len(self.rules) * 30 - HEIGHT + 200
-        max_scroll_authors = len(self.authors) * 30 - HEIGHT + 200
-        self.scroll_y_rules = min(self.scroll_y_rules + 30, max_scroll_rules)
-        self.scroll_y_authors = min(self.scroll_y_authors + 30, max_scroll_authors)
+        pygame.display.flip()
 
-
-class GameRulesApp:
     def run(self):
-        game_rules = GameRules()
-        running = True
-        while running:
+        clock = pygame.time.Clock()
+
+        while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    pygame.quit()
+                    sys.exit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
-                        return True
-                game_rules.scroll_up_button.handle_event(event)
-                game_rules.scroll_down_button.handle_event(event)
+                        return
 
-            game_rules.screen.fill(BLACK)
-            game_rules.display_rules()
-            game_rules.display_authors()
-            game_rules.scroll_up_button.draw(game_rules.screen)
-            game_rules.scroll_down_button.draw(game_rules.screen)
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_DOWN]:
+                self.scroll_position += 10
+            elif keys[pygame.K_UP]:
+                self.scroll_position -= 10
 
-            pygame.display.flip()
-            game_rules.clock.tick(FPS)
-            game_rules.screen.fill(WHITE)
+            self.scroll_position = max(0, min(self.scroll_position, self.text_height - self.window_height))
 
+            self.draw()
+            clock.tick(30)
+
+text = """Game Rules:
+1. Poruszasz się po planszy głównej i rzucasz kostką.
+2. Wyzwania w minigrach pomogą ci zdobywać punkty.
+3. Na oznaczonych polach możesz wziąć udział w Specjalnych Eventach.
+4. Rywalizujesz z innymi graczami.
+5. Codziennie masz jeden rzut i jedną minigrę.
+6. Wybierasz jednego spośród sześciu pionków jako avatara.
+7. Uczysz się dbać o środowisko.
+8. Uczysz się ekologii.
+9. Pamiętaj aby codziennie zagrać, to ważne do punktacji końcowej.
+10. Zaproś znajomych.
+11. Miłej zabawy !!
+
+Authors:
+Adam Kloc
+Artur Gluba
+Hubert Kłosowski
+Kacper Janowicz
+Kamil Małecki
+Krzysztof Kolanek
+Jakub Garus
+Jakub Tomaszewski
+Martyna Brzezowska
+Michał Bukowski
+Oskar Baranowski
+Stanisław Kowalczyk
+                    """
+def display_rules():
+    # showing game rules
+    scene = GameRules(text)
+    scene.run()

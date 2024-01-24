@@ -38,6 +38,7 @@ class PlayerMovement:
 
     def choose_mini_game(self):
         random_number = random.randint(0, 4)
+        random_number = 3
         return self.game_list[random_number]
 
 

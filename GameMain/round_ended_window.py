@@ -18,7 +18,12 @@ class RoundEndedInfo:
         screen = pygame.display.set_mode((1200, 800))
         pygame.display.set_caption(f"Round {self.round_number} Ended!")
 
-        font = pygame.font.Font(None, 72)
+        # Load the background image
+        background_image = pygame.image.load("background.jpg")
+        background_image = pygame.transform.scale(background_image, (1200, 800))
+        screen.blit(background_image, (0, 0))
+
+        font = pygame.font.Font(None, 96)
         text = font.render(f"Round {self.round_number} Ended!", True, (255, 255, 255))
         text_rect = text.get_rect(center=(600, 200))
 

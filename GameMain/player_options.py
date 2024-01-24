@@ -3,7 +3,7 @@ from tkinter import messagebox
 import pygame
 import subprocess
 import sys
-from GameMain.main_board import display_rules
+from GameMain.game_rules import display_rules
 from Player.player_avatar import PlayerAvatar
 from BoardDao import BoardDao
 import mglobals
@@ -51,7 +51,7 @@ def create_button(text, position, command):
 
 def play_game():
     avatar_img = dao.get_board_entry_by_user_login(str(sys.argv[1]))['avatar_img']
-    if avatar_img is None:
+    if avatar_img == mglobals.default:
         messagebox.showinfo("Character Selection", "Najpierw wybierz postać!")
         return
     else:

@@ -1,3 +1,4 @@
+import mglobals
 from GameMain.BoardDao import BoardDao
 from User.UserDao import UserDao
 from User.Userr import Userr as User
@@ -54,7 +55,7 @@ class SessionController:
         self.board_dao.add_board_entry(
             user_login=self.session_user.login,
             board_position=0,
-            avatar_img=None,
+            avatar_img=mglobals.default,
             round_number=0
         )
 

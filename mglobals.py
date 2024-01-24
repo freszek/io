@@ -52,6 +52,7 @@ fontsize_map = {
         'small': 12,
 }
 
+default = "GameMain/pics/default.png"
 GD = None
 CLK = None
 BACK_IMG = None
