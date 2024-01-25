@@ -212,6 +212,7 @@ class UserDao:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             category_name TEXT NOT NULL,
+            round_number INTEGER NOT NULL,
             points INTEGER NOT NULL,
             date TEXT NOT NULL,
             FOREIGN KEY(user_id) REFERENCES users(id)
@@ -232,10 +233,10 @@ class UserDao:
 
         return points_list
 
-    def add_points(self, user_id: int, points: int, date: str, category_name: str) -> bool:
-        query = 'INSERT INTO points (user_id, points, date, category_name) VALUES (?, ?, ?, ?)'
+    def add_points(self, user_id: int, points: int, date: str, category_name: str, round_number: int) -> bool:
+        query = 'INSERT INTO points (user_id, points, date, category_name, round_number) VALUES (?, ?, ?, ?, ?)'
         try:
-            self.conn.execute(query, (user_id, points, date, category_name))
+            self.conn.execute(query, (user_id, points, date, category_name, round_number))
             self.conn.commit()
             return True
         except Exception as e:

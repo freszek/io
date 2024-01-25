@@ -19,12 +19,13 @@ class PlayerMovement:
     PIMG_WIDTH = 60
     PIMG_HEIGHT = 40
 
-    def __init__(self, player_name, player_img, position, player_id):
+    def __init__(self, player_name, player_img, position, player_id, round_number):
         self.position = position
         self.player_name = player_name
         self.player_id = player_id
         self.player_img = player_img
         self.result = 0
+        self.round_number = round_number
         self.x, self.y = 720, 730
         game1 = MiniGame(1, "WaterSafe", 30, 5)
         game2 = MiniGame(2, "CleanUp", 30, 5)
@@ -38,7 +39,7 @@ class PlayerMovement:
 
     def choose_mini_game(self):
         random_number = random.randint(0, 4)
-        random_number = 1
+        # random_number = 1
         return self.game_list[random_number]
 
 
@@ -60,8 +61,8 @@ class PlayerMovement:
         user_dao = UserDao()
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        # Wywołanie metody add_points z aktualną datą
-        user_dao.add_points(user_id=self.player_id, points=self.result_game, date=current_date, category_name=self.game_mini.minigameName)
+        user_dao.add_points(user_id=self.player_id, points=self.result_game,
+                            date=current_date, category_name=self.game_mini.minigameName, round_number=self.round_number)
 # =============================================================================
         utils.draw_board()
         self.render()
@@ -201,6 +202,6 @@ class Player:
             if self.player_name == player_name \
             else mglobals.PLAYER_TWO_COLOR
         self.ps = PlayerSelection(self.color, initial_position)
-        self.pm = PlayerMovement(self.player_name, pygame.image.load(player_img), initial_position, player_id) \
+        self.pm = PlayerMovement(self.player_name, pygame.image.load(player_img), initial_position, player_id, round_number) \
             if self.player_name == player_name \
-            else PlayerMovement(self.player_name, mglobals.P2_IMG, initial_position, player_id)
+            else PlayerMovement(self.player_name, mglobals.P2_IMG, initial_position, player_id, round_number)
