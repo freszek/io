@@ -40,11 +40,9 @@ class RoundEndedInfo:
         pygame.draw.rect(screen, green, button_next_round)
 
         font_button = pygame.font.Font(None, 48)
-        text_stats = font_button.render("Show Round Statistics", True, (255, 255, 255))
         text_next_round = font_button.render("Start Next Round", True, (255, 255, 255))
 
         screen.blit(text, text_rect)
-        screen.blit(text_stats, (button_stats.x + 50, button_stats.y + 30))
         screen.blit(text_next_round, (button_next_round.x + 50, button_next_round.y + 30))
 
         pygame.display.flip()

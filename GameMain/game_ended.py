@@ -74,7 +74,6 @@ class GameEndedChecker:
 
             buttons_data = [
                 {"text": "Finish", "position": (width // 2, 2 * height // 3 - 20), "command": finish_game},
-                {"text": "Show Game Statistics", "position": (width // 2, 2 * height // 3 + 80), "command": show_game_statistics},
             ]
 
             for button_data in buttons_data:
