@@ -46,12 +46,13 @@ class PlayerMovement:
     def advance(self, count):
         old_position = self.position
         self.position = (self.position + count) % mglobals.BOARD_SQUARES
-        print("pozycja" + str(self.position))
+        print("x " + str(self.x) + " y " + str(self.y))
         self.reposition()
+        print("x " + str(self.x) + " y " + str(self.y))
         self.render()
+        print("pozycja" + str(self.position))
 
-
-# =============================================================================
+        # =============================================================================
         self.result_game = 0
         if self.position != 0:
             self.game_mini = self.choose_mini_game()
@@ -62,13 +63,13 @@ class PlayerMovement:
         user_dao = UserDao()
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        user_dao.add_points(user_id=self.player_id, points=self.result_game,
+        user_dao.add_points(user_id=self.player_id, points=int(self.result_game),
                             date=current_date, category_name=self.game_mini.minigameName, round_number=self.round_number)
 # =============================================================================
         utils.draw_board()
         self.render()
-        # if old_position + count >= mglobals.BOARD_SQUARES:
-        #     game()
+        if old_position + count >= mglobals.BOARD_SQUARES:
+            game(self.player_name)
 
     def set_starting_position(self):
         self.reposition()
@@ -87,9 +88,9 @@ class PlayerMovement:
                     else 25
 
         # If the position corresponds to a vertical rectangle
-        elif (self.position > 0 and self.position < 10) or \
-                (self.position > 20 and self.position < 30):
-            if self.position > 0 and self.position < 10:
+        elif (0 < self.position < 10) or \
+                (20 < self.position < 30):
+            if 0 < self.position < 10:
                 self.y = 730
                 self.x = (mglobals.BOARD_WIDTH - PlayerMovement.SQ_HEIGHT_WIDTH
                           - PlayerMovement.PIMG_WIDTH - 3
@@ -101,7 +102,7 @@ class PlayerMovement:
 
         # If the position corresponds to a horizontal rectangle
         else:
-            if self.position > 10 and self.position < 20:
+            if 10 < self.position < 20:
                 self.x = 25
                 self.y = (mglobals.DISPLAY_H - PlayerMovement.SQ_HEIGHT_WIDTH
                           - PlayerMovement.PIMG_HEIGHT - 12
