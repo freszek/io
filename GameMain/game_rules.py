@@ -1,6 +1,7 @@
 import pygame
 import sys
 
+
 class GameRules:
     def __init__(self, text, window_width=800, window_height=600):
         self.text = text
@@ -30,7 +31,8 @@ class GameRules:
                          (self.window_width - self.scrollbar_width, 0, self.scrollbar_width, self.window_height))
         scrollbar_height = self.window_height * self.window_height / self.text_height
         pygame.draw.rect(self.window, (100, 100, 100),
-                         (self.window_width - self.scrollbar_width, self.scroll_position * self.window_height / self.text_height,
+                         (self.window_width - self.scrollbar_width,
+                          self.scroll_position * self.window_height / self.text_height,
                           self.scrollbar_width, scrollbar_height))
 
         pygame.display.flip()
@@ -57,6 +59,7 @@ class GameRules:
 
             self.draw()
             clock.tick(30)
+
 
 text = """Game Rules:
 1. Poruszasz się po planszy głównej i rzucasz kostką.
@@ -85,6 +88,8 @@ Michał Bukowski
 Oskar Baranowski
 Stanisław Kowalczyk
                     """
+
+
 def display_rules():
     # showing game rules
     scene = GameRules(text)
