@@ -11,7 +11,7 @@ class GameEndedChecker:
         self.thank_you_menu_shown = False
 
     def check_game_ended(self, current_round_number):
-        if current_round_number >= 14:
+        if current_round_number >= 7:
             self.game_ended = True
 
     def has_game_ended(self):

@@ -81,7 +81,7 @@ def round_loop(login, user_id):
         else:
             ended = True
         time_manager.render_time(mglobals.GD)
-        time_manager.render_round_info(mglobals.GD, currentplayer.round_number)
+        time_manager.render_round_info(mglobals.GD, (dao.get_highest_round_number()-1))
         info = has_round_ended(players)
         if info and not ended:
             number = currentplayer.round_number
