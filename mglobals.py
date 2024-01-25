@@ -77,7 +77,7 @@ INDEX_PROPPIC_MAP = {}
 
 def load_imgs():
     global BACK_IMG, P1_IMG, P_INFO_CLRSCR, MSG_CLRSCR
-    BACK_IMG = pygame.image.load('GameMain/pics/board.jpg')
+    BACK_IMG = pygame.image.load('GameMain/pics/board1.jpg')
     BACK_IMG = pygame.transform.scale(BACK_IMG, (DISPLAY_W - 400, DISPLAY_H))
     P_INFO_CLRSCR = pygame.Surface([380, 380])
     MSG_CLRSCR = pygame.Surface([380, 18])

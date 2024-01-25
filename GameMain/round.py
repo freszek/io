@@ -11,9 +11,11 @@ from BoardDao import BoardDao
 from time_manager import TimeManager
 from game_ended import GameEndedChecker
 
+
 def roll():
     val = mglobals.DICEOBJ.roll_dice()
     return val
+
 
 def check_round_hierarchy(players, currentplayer):
     for player in players:
@@ -43,6 +45,7 @@ def get_players_who_need_to_roll(players, currentplayer):
 
     return players_to_roll
 
+
 def round_loop(login, user_id):
     mglobals.init()
     game_ended_checker = GameEndedChecker()
@@ -57,7 +60,8 @@ def round_loop(login, user_id):
     players = []
     for i in range(0, num_of_players):
         player = Player(player_data[i]['user_login'],
-                        player_data[i]['board_position'], player_data[i]['avatar_img'], user_id, player_data[i]['round_number'])
+                        player_data[i]['board_position'], player_data[i]['avatar_img'], user_id,
+                        player_data[i]['round_number'])
         players.append(player)
         mglobals.PLAYER_OBJ[player_data[i]['user_login']] = players[i]
         players[i].pm.set_starting_position()

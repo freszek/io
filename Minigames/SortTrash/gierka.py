@@ -55,7 +55,6 @@ class Game:
 
         self.max_score = 100
         self.start_time = 0
-        self.elapsed_time = 0
         self.game_running = True
         self.end_time = 0
         self.game_completed = False
@@ -132,6 +131,7 @@ class Game:
 
     def run_game(self):
         self.show_menu_and_start_game()
+        clock = pygame.time.Clock()
         while self.game_running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -172,19 +172,28 @@ class Game:
             self.containers_group.draw(self.screen)
             self.trash_group.draw(self.screen)
 
-            if not self.trash_group and self.game_running and self.game_completed:
-                self.normalized_score = max(0, self.max_score - (self.end_time * 10 // 1000))
+            time_surface = pygame.font.Font(None, 36).render(
+                f"Czas: {pygame.time.get_ticks() / 1000:.2f} s", True, (0, 0, 0))
+            time_rect = time_surface.get_rect(topleft=(10, 10))
+            if not self.game_completed:
+                self.screen.blit(time_surface, time_rect)
+
+            if self.game_completed:
+                self.normalized_score = max(0, self.max_score - (self.end_time // 1000))
 
                 congratulations_text = pygame.font.Font(None, 36).render(
                     f"Gratulacje! Twój czas to: {self.end_time // 1000} s", True, (0, 0, 0))
                 congratulations_rect = congratulations_text.get_rect(center=(self.WIDTH // 2, self.HEIGHT // 2 - 60))
                 self.screen.blit(congratulations_text, congratulations_rect.topleft)
 
-                score_text = pygame.font.Font(None, 36).render(f"Twój wynik: {self.normalized_score} pkt", True, (0, 0, 0))
+                score_text = pygame.font.Font(None, 36).render(f"Twój wynik: {self.normalized_score} pkt", True,
+                                                               (0, 0, 0))
                 score_rect = score_text.get_rect(center=(self.WIDTH // 2, self.HEIGHT // 2 - 20))
                 self.screen.blit(score_text, score_rect.topleft)
+                self.start_time = pygame.time.get_ticks()
 
             pygame.display.flip()
-            pygame.time.Clock().tick(self.FPS)
+            clock.tick(self.FPS)
             self.screen.fill(self.WHITE)
+
         return self.normalized_score
