@@ -68,7 +68,8 @@ def round_loop(login, user_id):
         if players[i].player_name == login:
             currentplayer = players[i]
 
-    time_manager = TimeManager(round_dao.get_all_rounds()[round_dao.get_highest_round_number()]['time_started'], (1000, 30))
+    time_manager = TimeManager(round_dao.get_all_rounds()[round_dao.get_highest_round_number()]['time_started'],
+                               (1000, 30))
 
     # Setting player info box
     mglobals.PLAYER_NAME_SPRITE[currentplayer.player_name].set_x_y(350, 120)
@@ -77,7 +78,7 @@ def round_loop(login, user_id):
     can_roll = check_round_hierarchy(players, currentplayer)
     while True:
         if currentplayer.round_number > 0:
-            ended = round_dao.get_round_by_number(currentplayer.round_number-1)['displayed']
+            ended = round_dao.get_round_by_number(currentplayer.round_number - 1)['displayed']
         else:
             ended = True
         time_manager.render_time(mglobals.GD)
@@ -91,7 +92,7 @@ def round_loop(login, user_id):
                 round_dao.end_round(number - 1)
                 game_ended_checker.thank_you_menu()
             else:
-                round_info = RoundEndedInfo(number-1)
+                round_info = RoundEndedInfo(number - 1)
                 round_info.display_info()
                 mglobals.init()
                 mainboard_ui.init_dice()

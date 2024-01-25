@@ -14,7 +14,7 @@ class DiceUI(pygame.sprite.Sprite):
         self.unset_x_y()
 
     def set_x_y(self):
-        self.x, self.y = 280, 630
+        self.x, self.y = 280, 500
 
     def unset_x_y(self):
         self.x, self.y = 900, 900

@@ -15,6 +15,3 @@ def draw_board():
 def clear_msg_info():
     mglobals.MSG_CLRSCR.fill(mglobals.color_map['white'])
     mglobals.GD.blit(mglobals.MSG_CLRSCR, (808, 770))
-
-
-

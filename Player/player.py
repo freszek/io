@@ -66,8 +66,8 @@ class PlayerMovement:
 # =============================================================================
         utils.draw_board()
         self.render()
-        if old_position + count >= mglobals.BOARD_SQUARES:
-            game()
+        # if old_position + count >= mglobals.BOARD_SQUARES:
+        #     game()
 
     def set_starting_position(self):
         self.reposition()
