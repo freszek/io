@@ -36,16 +36,18 @@ def main():
         for user in users_to_update:
             dao.update_player_round(user, current_number+1)
             id = dao.get_board_entry_by_user_login(user)['id']
-            user_dao.add_points(user_id=id, points=0, date=current_date, category_name="did not roll")
+            user_dao.add_points(user_id=id, points=0, date=current_date,
+                                category_name="did not roll", round_number=current_number)
 #############################################################################################################
 # checking if new players joined the game
-    difference = abs(dao.get_highest_round_number()-dao.get_board_entry_by_user_login(current_user_login)['round_number'])
-    if difference >= 2:
+    difference = round_dao.get_highest_round_number()-dao.get_board_entry_by_user_login(current_user_login)['round_number']
+    if difference >= 1:
         dao.update_player_round(current_user_login, dao.get_highest_round_number())
         id = dao.get_board_entry_by_user_login(current_user_login)['id']
         current_date = datetime.now().strftime('%Y-%m-%d')
         for i in range(0, difference):
-            user_dao.add_points(user_id=id, points=0, date=current_date, category_name="was not in game", round_number=dao.get_highest_round_number()-i-1)
+            user_dao.add_points(user_id=id, points=0, date=current_date,
+                                category_name="was not in game", round_number=dao.get_highest_round_number()-i-1)
         print("Round updated")
     round.round_loop(current_user_login, current_user_id)
     pygame.quit()

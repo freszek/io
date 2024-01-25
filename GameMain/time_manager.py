@@ -33,7 +33,7 @@ class TimeManager:
 
     def render_round_info(self, screen, round_number):
         font = pygame.font.Font(None, 36)
-        round_text = font.render(f"Round: {round_number}", True, (0, 0, 0))
+        round_text = font.render(f"Round: {round_number}/14", True, (0, 0, 0))
         round_rect = round_text.get_rect(center=(self.display_position[0], self.display_position[1] + 200))
 
         screen.fill((255, 255, 255), round_rect)

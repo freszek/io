@@ -11,7 +11,7 @@ class GameEndedChecker:
         self.thank_you_menu_shown = False
 
     def check_game_ended(self, current_round_number):
-        if current_round_number >= 7:
+        if current_round_number >= 14:
             self.game_ended = True
 
     def has_game_ended(self):
@@ -27,7 +27,7 @@ class GameEndedChecker:
         dark_green = (0, 100, 0)
         light_green = (96, 160, 96)
 
-        font = pygame.font.SysFont("Yu Gothic UI", 30, bold=True)
+        font = pygame.font.SysFont("Yu Gothic UI", 20, bold=True)
 
         def play_click_sound():
             pygame.mixer.music.load("click_sound.wav")
@@ -66,6 +66,11 @@ class GameEndedChecker:
                     sys.exit()
 
             screen.fill(background_color)
+
+            font_caption = pygame.font.SysFont("Yu Gothic UI", 72, bold=True)  # Set the font size for the caption
+            game_ended_caption = font_caption.render("Game Ended", True, (*dark_green, 200))
+            game_ended_rect = game_ended_caption.get_rect(center=(width // 2, height // 3))
+            screen.blit(game_ended_caption, game_ended_rect)
 
             buttons_data = [
                 {"text": "Finish", "position": (width // 2, 2 * height // 3 - 20), "command": finish_game},
