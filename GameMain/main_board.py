@@ -27,6 +27,7 @@ def main():
 # checking if round time ended
     current_number = round_dao.get_highest_round_number()
     current_round = round_dao.get_round_by_number(current_number)['time_started']
+    print(current_round)
     time_manager = TimeManager(current_round, (1000, 30))
     if time_manager.get_time_left() <= timedelta(seconds=0):
         print("Round ended")

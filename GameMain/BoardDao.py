@@ -47,6 +47,16 @@ class BoardDao:
         else:
             return None
 
+    def get_highest_round_number(self):
+        query = 'SELECT round_number FROM board ORDER BY round_number DESC LIMIT 1'
+        cursor = self.conn.execute(query)
+        result = cursor.fetchone()
+
+        if result:
+            return result[0]
+        else:
+            return None
+
     def get_users_with_current_round(self, round_number):
         query = 'SELECT user_login FROM board WHERE round_number = ?'
         cursor = self.conn.execute(query, (round_number,))

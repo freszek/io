@@ -13,7 +13,8 @@ class RoundDao:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             time_started TEXT NOT NULL,
             time_ended TEXT,
-            round_number INTEGER
+            round_number INTEGER,
+            displayed BOOLEAN DEFAULT 0
         )
         '''
         self.conn.execute(query)
@@ -21,9 +22,10 @@ class RoundDao:
 
     def start_round(self, round_number):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        query = 'INSERT INTO round (time_started, round_number) VALUES (?, ?)'
+        query = 'INSERT INTO round (time_started, round_number, displayed) VALUES (?, ?, ?)'
         try:
-            self.conn.execute(query, (current_time, round_number))
+            # Default value for the 'displayed' column is set to 0 (False)
+            self.conn.execute(query, (current_time, round_number, 0))
             self.conn.commit()
             return True
         except Exception as e:
@@ -32,7 +34,7 @@ class RoundDao:
 
     def end_round(self, round_number):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        query = 'UPDATE round SET time_ended = ? WHERE round_number = ?'
+        query = 'UPDATE round SET time_ended = ?, displayed = 1 WHERE round_number = ?'
         try:
             self.conn.execute(query, (current_time, round_number))
             self.conn.commit()
@@ -50,7 +52,8 @@ class RoundDao:
             return result[0]
         else:
             return None
-    def get_round_info(self, round_number):
+
+    def get_round_by_number(self, round_number):
         query = 'SELECT * FROM round WHERE round_number = ?'
         cursor = self.conn.execute(query, (round_number,))
         result = cursor.fetchone()
@@ -60,7 +63,8 @@ class RoundDao:
                 'id': result[0],
                 'time_started': result[1],
                 'time_ended': result[2],
-                'round_number': result[3]
+                'round_number': result[3],
+                'displayed': result[4]
             }
         else:
             return None
@@ -76,25 +80,11 @@ class RoundDao:
                 'id': result[0],
                 'time_started': result[1],
                 'time_ended': result[2],
-                'round_number': result[3]
+                'round_number': result[3],
+                'displayed': result[4]
             })
 
         return rounds
-
-    def get_round_by_number(self, round_number):
-        query = 'SELECT * FROM round WHERE round_number = ?'
-        cursor = self.conn.execute(query, (round_number,))
-        result = cursor.fetchone()
-
-        if result:
-            return {
-                'id': result[0],
-                'time_started': result[1],
-                'time_ended': result[2],
-                'round_number': result[3]
-            }
-        else:
-            return None
 
     def close(self):
         self.conn.close()

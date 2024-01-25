@@ -14,7 +14,7 @@ class TimeManager:
 
     def render_time(self, screen):
         font = pygame.font.Font(None, 36)
-        message_text = font.render("Time To end round:", True, (0, 0, 0))
+        message_text = font.render("Time to end round:", True, (0, 0, 0))
         message_rect = message_text.get_rect(center=self.display_position)
         screen.blit(message_text, message_rect)
 
@@ -30,3 +30,11 @@ class TimeManager:
 
     def update_round(self, new_start_time_str):
         self.round_start_time = datetime.strptime(new_start_time_str, "%Y-%m-%d %H:%M:%S")
+
+    def render_round_info(self, screen, round_number):
+        font = pygame.font.Font(None, 36)
+        round_text = font.render(f"Round: {round_number}", True, (0, 0, 0))
+        round_rect = round_text.get_rect(center=(self.display_position[0], self.display_position[1] + 200))
+
+        screen.fill((255, 255, 255), round_rect)
+        screen.blit(round_text, round_rect)

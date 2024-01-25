@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from tkinter import messagebox
 
 import pygame
@@ -9,8 +8,8 @@ from GameMain.RoundDao import RoundDao
 from GameMain.round_ended_window import RoundEndedInfo
 from Player.player import Player
 from BoardDao import BoardDao
-from User.UserDao import UserDao
 from time_manager import TimeManager
+from game_ended import GameEndedChecker
 
 def roll():
     val = mglobals.DICEOBJ.roll_dice()
@@ -46,6 +45,7 @@ def get_players_who_need_to_roll(players, currentplayer):
 
 def round_loop(login, user_id):
     mglobals.init()
+    game_ended_checker = GameEndedChecker()
     mainboard_ui.init_dice()
     mainboard_ui.init_printui(login)
     utils.draw_board()
@@ -64,49 +64,56 @@ def round_loop(login, user_id):
         if players[i].player_name == login:
             currentplayer = players[i]
 
-    time_manager = TimeManager(round_dao.get_all_rounds()[currentplayer.round_number]['time_started'], (1000, 30))
+    time_manager = TimeManager(round_dao.get_all_rounds()[dao.get_highest_round_number()-1]['time_started'], (1000, 30))
 
     # Setting player info box
     mglobals.PLAYER_NAME_SPRITE[currentplayer.player_name].set_x_y(350, 120)
     mglobals.CURRENTPLAYER_IMG[currentplayer.player_name].set_x_y(480, 115)
 
     can_roll = check_round_hierarchy(players, currentplayer)
-    ended = True
-
     while True:
+        if currentplayer.round_number > 0:
+            ended = round_dao.get_round_by_number(dao.get_highest_round_number()-1)['displayed']
+        else:
+            ended = True
         time_manager.render_time(mglobals.GD)
-
+        time_manager.render_round_info(mglobals.GD, currentplayer.round_number)
         info = has_round_ended(players)
-        if info and ended:
+        if info and not ended:
             number = currentplayer.round_number
-            round_info = RoundEndedInfo(number)
-            round_info.display_info()
-            mglobals.init()
-            mainboard_ui.init_dice()
-            mainboard_ui.init_printui(login)
-            utils.draw_board()
-            dao = BoardDao()
-            num_of_players = dao.get_user_count()
-            player_data = dao.get_all_players()
-            round_dao.end_round(number - 1)
-            round_dao.start_round(number)
-            time_manager.update_round(round_dao.get_all_rounds()[currentplayer.round_number]['time_started'])
+            # Check if the game has ended
+            game_ended_checker.check_game_ended(number)
+            if game_ended_checker.has_game_ended():
+                game_ended_checker.thank_you_menu_shown()
+                round_dao.end_round(number - 1)
+            else:
+                round_info = RoundEndedInfo(number-1)
+                round_info.display_info()
+                mglobals.init()
+                mainboard_ui.init_dice()
+                mainboard_ui.init_printui(login)
+                utils.draw_board()
+                dao = BoardDao()
+                num_of_players = dao.get_user_count()
+                player_data = dao.get_all_players()
+                round_dao.end_round(number - 1)
+                round_dao.start_round(number)
+                time_manager.update_round(round_dao.get_all_rounds()[currentplayer.round_number]['time_started'])
 
-            players = []
-            for i in range(0, num_of_players):
-                player = Player(player_data[i]['user_login'],
-                                player_data[i]['board_position'], player_data[i]['avatar_img'], user_id,
-                                player_data[i]['round_number'])
-                players.append(player)
-                mglobals.PLAYER_OBJ[player_data[i]['user_login']] = players[i]
-                players[i].pm.set_starting_position()
-                if players[i].player_name == login:
-                    currentplayer = players[i]
+                players = []
+                for i in range(0, num_of_players):
+                    player = Player(player_data[i]['user_login'],
+                                    player_data[i]['board_position'], player_data[i]['avatar_img'], user_id,
+                                    player_data[i]['round_number'])
+                    players.append(player)
+                    mglobals.PLAYER_OBJ[player_data[i]['user_login']] = players[i]
+                    players[i].pm.set_starting_position()
+                    if players[i].player_name == login:
+                        currentplayer = players[i]
 
-            # Setting player info box
-            mglobals.PLAYER_NAME_SPRITE[currentplayer.player_name].set_x_y(350, 120)
-            mglobals.CURRENTPLAYER_IMG[currentplayer.player_name].set_x_y(480, 115)
-            ended = False
+                # Setting player info box
+                mglobals.PLAYER_NAME_SPRITE[currentplayer.player_name].set_x_y(350, 120)
+                mglobals.CURRENTPLAYER_IMG[currentplayer.player_name].set_x_y(480, 115)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -123,27 +130,19 @@ def round_loop(login, user_id):
                     currentplayer.round_number += 1
                     dao.update_player_round(login, currentplayer.round_number)
                     can_roll = check_round_hierarchy(players, currentplayer)
-                    ended = True
+                    for player in players:
+                        if player.player_name != currentplayer.player_name:
+                            player.pm.set_starting_position()
                 elif event.key == pygame.K_d and can_roll == False:
                     mess = get_players_who_need_to_roll(players, currentplayer)
                     messagebox.showinfo("Character Selection", f"Nie twoja kolej, {mess}!")
 
-            mglobals.DICE_DISPLAY.update()
-            mglobals.DICE_DISPLAY.draw(mglobals.GD)
-            mglobals.CENTRE_DISPLAYS.update()
-            mglobals.CENTRE_DISPLAYS.draw(mglobals.GD)
-            mglobals.PLAYER_NAME_DISPLAY.update()
-            mglobals.PLAYER_NAME_DISPLAY.draw(mglobals.GD)
+        mglobals.DICE_DISPLAY.update()
+        mglobals.DICE_DISPLAY.draw(mglobals.GD)
+        mglobals.CENTRE_DISPLAYS.update()
+        mglobals.CENTRE_DISPLAYS.draw(mglobals.GD)
+        mglobals.PLAYER_NAME_DISPLAY.update()
+        mglobals.PLAYER_NAME_DISPLAY.draw(mglobals.GD)
 
-            pygame.display.update()
-            mglobals.CLK.tick(30)
-
-            mglobals.DICE_DISPLAY.update()
-            mglobals.DICE_DISPLAY.draw(mglobals.GD)
-            mglobals.CENTRE_DISPLAYS.update()
-            mglobals.CENTRE_DISPLAYS.draw(mglobals.GD)
-            mglobals.PLAYER_NAME_DISPLAY.update()
-            mglobals.PLAYER_NAME_DISPLAY.draw(mglobals.GD)
-
-            pygame.display.update()
-            mglobals.CLK.tick(30)
+        pygame.display.update()
+        mglobals.CLK.tick(30)
