@@ -26,11 +26,7 @@ GREEN = (0, 255, 0)
 SEA_GREEN = (46, 139, 87)
 GRAY = (169, 169, 169)
 
-PLAYER_ONE = 'Player 1'
-PLAYER_TWO = 'Player 2'
-
-PLAYER_ONE_COLOR = 'royal_blue'
-PLAYER_TWO_COLOR = 'sea_green'
+PLAYER_ONE_COLOR = 'black'
 
 color_map = {
         'purple': PURPLE,
@@ -56,11 +52,11 @@ fontsize_map = {
         'small': 12,
 }
 
+default = "GameMain/pics/default.png"
 GD = None
 CLK = None
 BACK_IMG = None
 P1_IMG = None
-P2_IMG = None
 P_INFO_CLRSCR = None
 MSG_CLRSCR = None
 MSG_SCR = None
@@ -74,18 +70,14 @@ DICEOBJ = None
 DICE_NUMBER_MAP = {}
 DICE_DISPLAY = pygame.sprite.Group()
 
-PROPERTY_NAME_SPRITE_MAP = {}
-PROPERTY_DISPLAYS = pygame.sprite.Group()
+
 CENTRE_DISPLAYS = pygame.sprite.Group()
-POBJECT_MAP = {}
-PNAME_OBJ_MAP = {}
-PROP_COLOR_INDEX = collections.defaultdict(list)
 INDEX_PROPPIC_MAP = {}
 
 
 def load_imgs():
-    global BACK_IMG, P1_IMG, P2_IMG, P_INFO_CLRSCR, MSG_CLRSCR
-    BACK_IMG = pygame.image.load('pics/board.jpg')
+    global BACK_IMG, P1_IMG, P_INFO_CLRSCR, MSG_CLRSCR
+    BACK_IMG = pygame.image.load('GameMain/pics/board1.jpg')
     BACK_IMG = pygame.transform.scale(BACK_IMG, (DISPLAY_W - 400, DISPLAY_H))
     P_INFO_CLRSCR = pygame.Surface([380, 380])
     MSG_CLRSCR = pygame.Surface([380, 18])
@@ -93,11 +85,8 @@ def load_imgs():
 def init_pygame():
     global GD, CLK
     pygame.init()
-    # Can adjust game to screen size
-    # global DISPLAY_H, DISPLAY_W
-    # screen_info = pygame.display.Info()
-    # DISPLAY_W, DISPLAY_H = screen_info.current_w, screen_info.current_h
     GD = pygame.display.set_mode((DISPLAY_W, DISPLAY_H))
+    GD.fill(WHITE)
     pygame.display.set_caption('Green Game')
     CLK = pygame.time.Clock()
     pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP])
@@ -105,3 +94,7 @@ def init_pygame():
 def init():
     init_pygame()
     load_imgs()
+
+
+def P2_IMG():
+    return None

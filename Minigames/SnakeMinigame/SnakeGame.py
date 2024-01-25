@@ -9,6 +9,13 @@ class SnakeGame:
         self.snake_speed = 10
         self.window_x = width
         self.window_y = height
+        self.tire = pygame.image.load('Minigames/SnakeMinigame/Images/tire.jpg')
+        self.field = pygame.image.load('Minigames/SnakeMinigame/Images/field.jpg')
+        self.head_up = pygame.image.load('Minigames/SnakeMinigame/Images/head_up.png')
+        self.head_down = pygame.image.load('Minigames/SnakeMinigame/Images/head_down.png')
+        self.head_left = pygame.image.load('Minigames/SnakeMinigame/Images/head_left.png')
+        self.head_right = pygame.image.load('Minigames/SnakeMinigame/Images/head_right.png')
+        self.blue = (100, 125, 255)
         self.green = (18, 102, 79)
         self.green2 = (31, 173, 135)
         self.black = pygame.Color(0, 0, 0)
@@ -308,6 +315,7 @@ class SnakeGame:
 
     def run(self):
         pygame.time.wait(1000)
+        tire_resized = pygame.transform.scale(self.tire, (20, 20))
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -354,7 +362,7 @@ class SnakeGame:
                 self.score += 1
                 self.fruit_spawn = False
             else:
-                if len(self.snake_body) > 1:
+                if len(self.snake_body) > 0:
                     self.snake_body.pop()
                 else:
                     result = self.game_over()
@@ -367,12 +375,27 @@ class SnakeGame:
                 ]
 
             self.fruit_spawn = True
-            self.game_window.fill(self.green)
+            field_resized = pygame.transform.scale(self.field, (self.window_x, self.window_y))
+            self.game_window.blit(field_resized, (0, 0))
+            head_up_resized = pygame.transform.scale(self.head_up, (20, 20))
+            head_down_resized = pygame.transform.scale(self.head_down, (20, 20))
+            head_left_resized = pygame.transform.scale(self.head_left, (20, 20))
+            head_right_resized = pygame.transform.scale(self.head_right, (20, 20))
 
-            for pos in self.snake_body:
-                pygame.draw.rect(self.game_window, self.white, pygame.Rect(pos[0], pos[1], 20, 20))
-            pygame.draw.rect(self.game_window, self.black, pygame.Rect(
-                self.fruit_position[0], self.fruit_position[1], 20, 20))
+            for idx, pos in enumerate(self.snake_body):
+                if idx == 0:
+                    if self.direction == 'UP':
+                        self.game_window.blit(head_up_resized, (pos[0], pos[1]))
+                    elif self.direction == 'DOWN':
+                        self.game_window.blit(head_down_resized, (pos[0], pos[1]))
+                    elif self.direction == 'LEFT':
+                        self.game_window.blit(head_left_resized, (pos[0], pos[1]))
+                    elif self.direction == 'RIGHT':
+                        self.game_window.blit(head_right_resized, (pos[0], pos[1]))
+                else:
+                    pygame.draw.rect(self.game_window, self.blue, pygame.Rect(pos[0], pos[1], 20, 20))
+
+            self.game_window.blit(tire_resized, (self.fruit_position[0], self.fruit_position[1]))
 
             if self.snake_position[0] < -5 or self.snake_position[0] >= self.window_x:
                 result = self.game_over()
