@@ -9,7 +9,7 @@ class Dice(object):
         self.dicemap = mglobals.DICE_NUMBER_MAP
 
     def roll_dice(self):
-        self.number1 = random.randrange(6, 7)
+        self.number1 = random.randrange(0, 7)
         self.show()
         return self.number1
 
