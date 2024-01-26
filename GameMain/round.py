@@ -130,8 +130,8 @@ def round_loop(login, user_id):
                     mglobals.DICEOBJ.hide()
                     currentplayer.ps.hide()
                     val = roll()
-                    dao.update_player_position(login, currentplayer.pm.position + val)
                     currentplayer.pm.advance(val)
+                    dao.update_player_position(login, currentplayer.pm.position)
                     currentplayer.round_number += 1
                     dao.update_player_round(login, currentplayer.round_number)
                     can_roll = check_round_hierarchy(players, currentplayer)

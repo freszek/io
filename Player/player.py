@@ -6,10 +6,9 @@ import mglobals
 
 from GameMain import utils
 from MiniGameManager.mini_game import MiniGame
-from User.UserDao import UserDao
+
 from Events.mainEvents import game
-
-
+from User.UserDao import UserDao
 
 
 class PlayerMovement:
@@ -60,20 +59,23 @@ class PlayerMovement:
         #         self.result_game = self.game_mini.startMinigame()
         # self.result += self.result_game
         #
-        # user_dao = UserDao()
+        user_dao = UserDao()
         #
         # current_date = datetime.now().strftime('%Y-%m-%d')
         # user_dao.add_points(user_id=self.player_id, points=int(self.result_game),
         #                     date=current_date, category_name=self.game_mini.minigameName, round_number=self.round_number)
         # =============================================================================
-        utils.draw_board()
-        self.render()
+
         if old_position + count >= mglobals.BOARD_SQUARES:
             eventscore = game(self.player_name)
             current_date = datetime.now().strftime('%Y-%m-%d')
             user_dao.add_points(user_id=self.player_id, points=int(eventscore),
                                 date=current_date, category_name="EVENT",
                                 round_number=self.round_number)
+
+        utils.draw_board()
+        self.render()
+
 
     def set_starting_position(self):
         self.reposition()
