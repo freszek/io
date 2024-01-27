@@ -63,17 +63,10 @@ class PlayerMovement:
         # user_dao.add_points(user_id=self.player_id, points=int(self.result_game),
         #                     date=current_date, category_name=self.game_mini.minigameName, round_number=self.round_number)
         # =============================================================================
-        session_data = []
-        players = [player.player_name for player in mglobals.PLAYER_OBJ.values()]
         if old_position + count >= mglobals.BOARD_SQUARES:
-            eventscore = game(self.player_name, players, session_data)
-            if len(session_data) == len(players):
-                session_data.clear()
-            print(session_data)
-            current_date = datetime.now().strftime('%Y-%m-%d')
-            user_dao.add_points(user_id=self.player_id, points=int(eventscore),
-                                date=current_date, category_name="EVENT",
-                                round_number=self.round_number)
+            eventscore = game(self.player_name)
+            user_dao.add_points(user_id=self.player_id, points=eventscore, date=datetime.now().strftime('%Y-%m-%d'),
+                                category_name="EVENT", round_number=self.round_number)
 
         utils.draw_board()
         self.render()

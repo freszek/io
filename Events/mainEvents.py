@@ -2,10 +2,12 @@ import pygame
 from Events.QuizWindow import QuizWindow
 from Events.StatsWindow import StatsWindow
 from Events.AchievementsWindow import AchievementsWindow
+from mglobals import PLAYER_OBJ
 
 
-def game(player_name, players, session_data, width=1200, height=800):
-    user_data = [[] for _ in range(3)]
+def game(player_name, width=1200, height=800):
+    session_data = [[] for _ in range(3)]
+    players = [player.player_name for player in PLAYER_OBJ.values()]
     score = 0
     pygame.init()
 
@@ -43,20 +45,19 @@ def game(player_name, players, session_data, width=1200, height=800):
                     if quiz_button_rect.collidepoint(mouse_x, mouse_y) and not quiz_clicked:
                         quiz = QuizWindow(player_name)
                         try:
-                            user_data = quiz.player_data
-                            score = user_data[1][0][2]
-                            session_data.append(user_data)
+                            session_data = quiz.player_data
+                            score = session_data[1][0][2]
                         except IndexError:
                             score = 0
                         quiz_clicked = True
                     elif stats_button_rect.collidepoint(mouse_x, mouse_y):
                         try:
-                            StatsWindow(user_data[0:2], players)
+                            StatsWindow(session_data[0:2], players)
                         except IndexError:
                             show = False
                     elif achievement_button_rect.collidepoint(mouse_x, mouse_y):
                         try:
-                            AchievementsWindow([user_data[0], user_data[2]], players)
+                            AchievementsWindow([session_data[0], session_data[2]], players)
                         except IndexError:
                             show = False
                     elif exit_button_rect.collidepoint(mouse_x, mouse_y):
