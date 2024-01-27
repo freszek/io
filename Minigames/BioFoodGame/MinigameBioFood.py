@@ -1,5 +1,6 @@
 import pygame
 import random
+import sys
 
 
 class EkologicznySnake:
@@ -23,8 +24,16 @@ class EkologicznySnake:
         self.gracz_pos = [self.szerokosc // 2 // self.rozmiar_segmentu * self.rozmiar_segmentu,
                           self.wysokosc // 2 // self.rozmiar_segmentu * self.rozmiar_segmentu]
 
+        self.frytki_obrazek = pygame.image.load('Minigames/BioFoodGame/pics_game/fryty.png')
+        self.frytki_obrazek = pygame.transform.scale(self.frytki_obrazek,
+                                                     (self.rozmiar_segmentu, self.rozmiar_segmentu))
+
+        self.jablko_obrazek = pygame.image.load('Minigames/BioFoodGame/pics_game/japko.png')
+        self.jablko_obrazek = pygame.transform.scale(self.jablko_obrazek,
+                                                     (self.rozmiar_segmentu, self.rozmiar_segmentu))
+
         self.ekologiczne_pos = self.losowa_pozycja([self.gracz_pos])
-        self.ilosc_nieekologicznych = 5
+        self.ilosc_nieekologicznych = 50
         self.nieekologiczne_pozycje = [self.losowa_pozycja([self.gracz_pos, self.ekologiczne_pos])
                                        for _ in range(self.ilosc_nieekologicznych)]
 
@@ -45,9 +54,12 @@ class EkologicznySnake:
 
     def rysuj_ekran(self):
         self.ekran.fill(self.BLACK)
-        pygame.draw.rect(self.ekran, self.GREEN, (*self.ekologiczne_pos, self.rozmiar_segmentu, self.rozmiar_segmentu))
+
         for pozycja in self.nieekologiczne_pozycje:
-            pygame.draw.rect(self.ekran, self.RED, (*pozycja, self.rozmiar_segmentu, self.rozmiar_segmentu))
+            self.ekran.blit(self.frytki_obrazek, (*pozycja, self.rozmiar_segmentu, self.rozmiar_segmentu))
+
+        self.ekran.blit(self.jablko_obrazek, (*self.ekologiczne_pos, self.rozmiar_segmentu, self.rozmiar_segmentu))
+
         self.ekran.blit(self.gracz_obrazek, self.gracz_pos)
 
         self.zdrowie = max(0, self.zdrowie - 2)
@@ -59,7 +71,49 @@ class EkologicznySnake:
 
         pygame.display.flip()
 
+    def ekran_startowy(self):
+        self.ekran.fill(self.WHITE)
+        font = pygame.font.SysFont("comicsansms", 30)
+        naglowek = font.render("Zdrowe odżywianie", True, self.BLACK)
+        naglowek_rect = naglowek.get_rect(center=(self.szerokosc // 2, self.wysokosc // 4))
+
+        zasady_gry = [
+            "Zasady gry:",
+            "1. Sterowanie za pomocą strzałek.",
+            "2. Jedz ekologiczne jedzenie (zielone) aby zdobywać punkty i regenerować zdrowie.",
+            "3. Unikaj nieekologicznego jedzenia (czerwone), które obniża zdrowie.",
+            "4. Gra kończy się, gdy zdrowie spadnie do zera lub gracz uzyska 100 punktów.",
+            "5. Możesz przechodzić przez ściany"
+            "",
+            "Naciśnij dowolny klawisz, aby rozpocząć grę."
+        ]
+
+        linie_tekstu = []
+        for linia in zasady_gry:
+            linie_tekstu.append(font.render(linia, True, self.BLACK))
+
+        self.ekran.blit(naglowek, naglowek_rect)
+
+        y = self.wysokosc // 2
+        for linia in linie_tekstu:
+            linia_rect = linia.get_rect(center=(self.szerokosc // 2, y))
+            self.ekran.blit(linia, linia_rect)
+            y += 40
+
+        pygame.display.flip()
+
+        czekaj_na_start = True
+        while czekaj_na_start:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    czekaj_na_start = False
+
     def run_game(self):
+        self.ekran_startowy()
+
         dziala = True
         while dziala:
             for event in pygame.event.get():
@@ -79,7 +133,7 @@ class EkologicznySnake:
             self.gracz_pos[1] %= self.wysokosc
 
             if self.gracz_pos == self.ekologiczne_pos:
-                self.wynik += 1
+                self.wynik += 5
                 self.zdrowie += 30
                 self.ekologiczne_pos = self.losowa_pozycja([self.gracz_pos] + self.nieekologiczne_pozycje)
 
@@ -91,12 +145,27 @@ class EkologicznySnake:
 
             self.rysuj_ekran()
 
-            if self.zdrowie <= 0:
-                print(f"Koniec gry! Twój wynik to: {self.wynik}")
-                # dziala = False
-                self.ekran.fill(self.WHITE)
-                return self.wynik
+            if self.zdrowie <= 0 or self.wynik == 100:
+                self.koniec_gry()
 
             self.zegar.tick(self.FPS)
 
         pygame.quit()
+
+    def koniec_gry(self):
+        self.ekran.fill(self.WHITE)
+        font = pygame.font.SysFont("comicsansms", 50)
+        tekst = font.render(f"Koniec gry! Twój wynik to: {self.wynik}", True, self.BLACK)
+        tekst_rect = tekst.get_rect(center=(self.szerokosc // 2, self.wysokosc // 2))
+        self.ekran.blit(tekst, tekst_rect)
+        pygame.display.flip()
+
+        czekaj = True
+        while czekaj:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    czekaj = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    czekaj = False
+        pygame.quit()
+        sys.exit()

@@ -1,340 +1,17 @@
-from datetime import datetime, timedelta
-import mglobals
-from game_rules import GameRulesApp
-from player_avatar import PlayerAvatar
-import hashlib
-import sqlite3
-from typing import List
+from SessionController import SessionController
+from User.UserDao import UserDao
 import pygame
 import sys
 from FriendList import FriendList, Button
 import tkinter as tk
-from tkinter import messagebox, simpledialog
+from tkinter import messagebox
 import customtkinter as ctk
 from PIL import Image, ImageTk
 import subprocess
 
-
-# from gierka import show_menu_and_start_game
-
-# DEFINICJE KLAS ITP
-class User:
-    def __init__(self, id, login, password, email, answer, question):
-        self.id = id
-        self.login = login
-        self.password = password
-        self.email = email
-        self.is_logged = 0
-        self.answer = answer
-        self.question = question
-
-
-class Points:
-    def __init__(self, value, date, category):
-        self.value = value
-        self.date = date
-        self.category = category
-
-    def get_value(self):
-        return self.value
-
-    def get_date(self):
-        return self.date
-
-    def get_category(self):
-        return self.category
-
-    def set_value(self, value):
-        self.value = value
-
-    def set_date(self, date):
-        self.date = date
-
-    def set_category(self, category):
-        self.category = category
-
-
-class UserDao:
-    def __init__(self, db_path="users.db"):
-        self.db_path = db_path
-        self.conn = sqlite3.connect(db_path)
-        self.create_table()
-        self.create_points_table()
-
-    def get_ranking_data(self, user_list, period='daily'):
-        ranking = {}
-
-        # Ustalenie zakresu dat dla okresu
-        current_date = datetime.now()
-        if period == 'daily':
-            start_date = current_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        elif period == 'weekly':
-            start_date = current_date - timedelta(days=current_date.weekday())
-            start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
-
-        for user in user_list:
-            user_points = self.get_user_points(user.id)
-            for point in user_points:
-                point_date = datetime.strptime(point.date, '%Y-%m-%d')
-                if start_date <= point_date < current_date:
-                    if user.login not in ranking:
-                        ranking[user.login] = 0
-                    ranking[user.login] += point.value
-
-        # Sortowanie wyników w celu utworzenia rankingu
-        sorted_ranking = sorted(ranking.items(), key=lambda x: x[1], reverse=True)
-        return sorted_ranking
-
-    def get_friends_ranking_data(self, user_id: int, period='daily'):
-        ranking = {}
-
-        # Ustalenie zakresu dat dla okresu
-        current_date = datetime.now()
-        if period == 'daily':
-            start_date = current_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        elif period == 'weekly':
-            start_date = current_date - timedelta(days=current_date.weekday())
-            start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
-
-        # Pobranie listy ID znajomych
-        friend_ids = self.get_friend_list(user_id)
-
-        # Pobranie punktów dla każdego znajomego
-        for friend_id in friend_ids:
-            friend_points = self.get_user_points(friend_id)
-            for point in friend_points:
-                point_date = datetime.strptime(point.date, '%Y-%m-%d')
-                if start_date <= point_date < current_date:
-                    friend = self.get_by_id(friend_id)
-                    if friend.login not in ranking:
-                        ranking[friend.login] = 0
-                    ranking[friend.login] += point.value
-
-        # Sortowanie wyników
-        sorted_ranking = sorted(ranking.items(), key=lambda x: x[1], reverse=True)
-        return sorted_ranking
-
-    def create_table(self):
-        query = '''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            login TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL,
-            email TEXT NOT NULL,
-            answer TEXT,
-            question TEXT
-        )
-        '''
-        query1 = '''
-        CREATE TABLE IF NOT EXISTS user_friends (
-            user_id INTEGER,
-            friend_id INTEGER,
-            PRIMARY KEY (user_id, friend_id),
-            FOREIGN KEY (user_id) REFERENCES users(id),
-            FOREIGN KEY (friend_id) REFERENCES users(id)
-        );
-        '''
-        self.conn.execute(query)
-        self.conn.commit()
-        self.conn.execute(query1)
-        self.conn.commit()
-
-    def get_all(self) -> List[User]:
-        query = 'SELECT * FROM users'
-        cursor = self.conn.execute(query)
-        result = cursor.fetchall()
-
-        users = []
-        for user in result:
-            users.append(User(user[0], user[1], user[2], user[3], user[4], user[5]))
-        return users
-
-    def get_by_id(self, user_id: int) -> User:
-        query = 'SELECT * FROM users WHERE id = ?'
-        cursor = self.conn.execute(query, (user_id,))
-        result = cursor.fetchone()
-        try:
-            return User(result[0], result[1], result[2], result[3], result[4], result[5])
-        except:
-            print("User not found")
-
-    def get_by_login(self, login) -> User:
-        query = 'SELECT * FROM users WHERE login = ?'
-        cursor = self.conn.execute(query, (login,))
-        result = cursor.fetchone()
-        try:
-            return User(result[0], result[1], result[2], result[3], result[4], result[5])
-        except:
-            print("User not found")
-
-    def create_user(self, user: User) -> bool:
-        query = 'INSERT INTO users (login, password, email, answer, question) VALUES (?, ?, ?, ?, ?)'
-        try:
-            self.conn.execute(query,
-                              (user.login, self.hash_password(user.password), user.email, user.answer, user.question))
-            self.conn.commit()
-            return True
-        except:
-            return False
-
-    def update_user(self, user: User, password: str) -> bool:
-        hashed_password = self.hash_password(password)
-        query = 'UPDATE users SET password = ? WHERE id = ?'
-        try:
-            self.conn.execute(query, (hashed_password, user.id))
-            self.conn.commit()
-            return True
-        except:
-            return False
-
-    def delete_user(self, user: User) -> bool:
-        query = 'DELETE FROM users WHERE id = ?'
-        try:
-            self.conn.execute(query, (user.id,))
-            self.conn.commit()
-            return True
-        except:
-            return False
-
-    def get_friend_list(self, user_id):
-        cursor = self.conn.cursor()
-        cursor.execute('''
-                SELECT friend_id FROM user_friends WHERE user_id = ?
-            ''', (user_id,))  # Zauważ użycie przecinka, aby utworzyć krotkę jednoelementową
-
-        friends = cursor.fetchall()
-
-        friend_ids = [friend[0] for friend in friends]
-        return friend_ids
-
-    def delete_friend(self, user_id, friend_id):
-        cursor = self.conn.cursor()
-
-        query = "DELETE FROM user_friends WHERE user_id = ? AND friend_id = ?"
-        cursor.execute(query, (user_id, friend_id))
-        self.conn.commit()
-
-        cursor.close()
-
-    def create_points_table(self):
-        query = '''
-        CREATE TABLE IF NOT EXISTS points (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            category_name TEXT NOT NULL,
-            points INTEGER NOT NULL,
-            date TEXT NOT NULL,
-            FOREIGN KEY(user_id) REFERENCES users(id)
-        )
-        '''
-        self.conn.execute(query)
-        self.conn.commit()
-
-    def get_user_points(self, user_id: int):
-        query = 'SELECT points, date, category_name FROM points WHERE user_id = ?'
-        cursor = self.conn.execute(query, (user_id,))
-        results = cursor.fetchall()
-
-        points_list = []
-        for result in results:
-            points = Points(result[0], result[1], result[2])
-            points_list.append(points)
-
-        return points_list
-
-    def add_points(self, user_id: int, points: int, date: str, category_name: str) -> bool:
-        query = 'INSERT INTO points (user_id, points, date, category_name) VALUES (?, ?, ?, ?)'
-        try:
-            self.conn.execute(query, (user_id, points, date, category_name))
-            self.conn.commit()
-            return True
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            return False
-
-    def hash_password(self, password):
-        return hashlib.sha256(password.encode()).hexdigest()
-
-    def close(self):
-        self.conn.close()
-
-
-class SessionController:
-    def __init__(self):
-        self.session_user = None
-        self.user_dao = UserDao()
-        self.counter = 0
-
-    def register(self, login, password, email, answer, question):
-        if self.check_login(login):
-            print("Uzytkownik o tym loginie juz istnieje!")
-            return
-
-        user = User(0, login, password, email, question, answer)
-        self.session_user = user
-        self.user_dao.create_user(user)
-        print(f"ZAREJESTROWANY {login}")
-
-    def check_login(self, login: str) -> bool:
-        users = self.user_dao.get_all()
-        return any(user.login == login for user in users)
-
-    def check_password(self, login: str, password: str) -> bool:
-        user = self.user_dao.get_by_login(login)
-        if user:
-            hashed_password = self.user_dao.hash_password(password)
-            return user.password == hashed_password
-        return False
-
-    def log_in(self, login: str, password: str, answer: str) -> bool:
-        if answer != "":
-            if self.check_login(login) and self.check_answer(login, answer):
-                print("ZALOGOWANY")
-                self.session_user = self.user_dao.get_by_login(login)
-                self.session_user.is_logged = True
-                return True
-
-        else:
-            if self.check_login(login) and self.check_password(login, password):
-                print("ZALOGOWANY")
-                self.session_user = self.user_dao.get_by_login(login)
-                self.session_user.is_logged = True
-                return True
-        print("Niezalogowany")
-        return False
-
-    def check_if_logged(self) -> bool:
-        return self.session_user.is_logged
-
-    def check_answer(self, login: str, answer: str) -> bool:
-        user = self.user_dao.get_by_login(login)
-        return user.answer == answer
-
-    def log_out(self, login: str):
-        user = self.user_dao.get_by_login(login)
-        if user:
-            user.is_logged = False
-
-    def delete_user(self, password: str) -> bool:
-        print(self.session_user)
-        if self.check_password(self.session_user.login, password):
-            self.user_dao.delete_user(self.session_user)
-            self.log_out(self.session_user.login)
-            return True
-        return False
-
-    def change_password(self, current_password: str, new_password: str) -> bool:
-        if self.check_password(self.session_user.login, current_password):
-            self.user_dao.update_user(self.session_user, new_password)
-            return True
-        return False
-
-    def close(self):
-        self.user_dao.close()
-
-
 # WSZELAKO ROZUMIANA DEFINICJA GUI
 session = SessionController()
+
 
 settings_opened = False
 ranking_opened = False
@@ -377,8 +54,8 @@ def change_password_form():
     entry_new_password.place(x=410, y=200)
 
     confirm_button = ctk.CTkButton(root, text="Zmień hasło", command=lambda: confirm_change_password(root),
-                                   corner_radius=0, fg_color=("#60A060"),
-                                   hover_color=("#006400"), )
+                                   corner_radius=0, fg_color="#60A060",
+                                   hover_color="#006400", )
     confirm_button.place(x=325, y=250)
 
     global session
@@ -425,8 +102,8 @@ def delete_user_form():
     entry_password.place(x=410, y=200)
 
     confirm_button = ctk.CTkButton(root, text="Usuń użytkownika", command=lambda: confirm_delete_user(root),
-                                   corner_radius=0, width=150, fg_color=("#60A060"),
-                                   hover_color=("#006400"))
+                                   corner_radius=0, width=150, fg_color="#60A060",
+                                   hover_color="#006400")
     confirm_button.place(x=325, y=250)
 
     global session
@@ -486,11 +163,11 @@ def register(frame):
     register_button = ctk.CTkButton(temp, text="Zarejestruj",
                                     command=lambda: register_in(email_field.get(), login_field.get(),
                                                                 password_field.get(), answer_field.get(),
-                                                                questions_field.get()), fg_color=("#60A060"),
-                                    hover_color=("#006400"), corner_radius=0, width=150)
+                                                                questions_field.get()), fg_color="#60A060",
+                                    hover_color="#006400", corner_radius=0, width=150)
     back_button = ctk.CTkButton(temp, text="Powrót",
-                                command=lambda: main_login_window(temp), fg_color=("#60A060"),
-                                hover_color=("#006400"), corner_radius=0, width=150)
+                                command=lambda: main_login_window(temp), fg_color="#60A060",
+                                hover_color="#006400", corner_radius=0, width=150)
 
     email_string.place(x=240, y=50)
     login_string.place(x=240, y=100)
@@ -553,11 +230,11 @@ def answer_login(frame):
 
     login_button_log = ctk.CTkButton(temp, text="Logowanie",
                                      command=lambda: answer_log_in(login_field_log.get(), "",
-                                                                   answer_field_log.get()), fg_color=("#60A060"),
-                                     hover_color=("#006400"), corner_radius=0, width=150)
+                                                                   answer_field_log.get()), fg_color="#60A060",
+                                     hover_color="#006400", corner_radius=0, width=150)
     back_button = ctk.CTkButton(temp, text="Powrót",
-                                command=lambda: main_login_window(temp), fg_color=("#60A060"),
-                                hover_color=("#006400"), corner_radius=0, width=150)
+                                command=lambda: main_login_window(temp), fg_color="#60A060",
+                                hover_color="#006400", corner_radius=0, width=150)
 
     login_log.place(x=240, y=150)
     answer_log.place(x=240, y=200)
@@ -624,6 +301,57 @@ def main_login_window(frame):
     # session.close()
 
 
+def render_ranking(screen, ranking_data, font, current_user, daily_ranking):
+    # Define colors
+    green_color = (0, 128, 0)  # Green color for the background of the leaderboard
+    light_green = (144, 238, 144)  # Light green for alternating rows
+    dark_green = (0, 100, 0)  # Dark green for alternating rows
+    text_color = (255, 255, 255)  # White for text
+    highlight_color = (0, 0, 0)  # Gold color for highlighting the current user
+
+    # Define leaderboard size and position
+    leaderboard_x = 100  # X position of the leaderboard
+    leaderboard_y = 100  # Y position of the leaderboard
+    leaderboard_width = 600  # Width of the leaderboard
+    leaderboard_height = 50  # Height of each row in the leaderboard
+
+    # Draw the leaderboard background
+    pygame.draw.rect(screen, green_color,
+                     (leaderboard_x, leaderboard_y, leaderboard_width, len(ranking_data) * leaderboard_height))
+
+    # Loop through the ranking data and draw each row
+    for index, (username, points) in enumerate(ranking_data):
+        row_y = leaderboard_y + index * leaderboard_height  # Y position of the current row
+        row_color = light_green if index % 2 == 0 else dark_green  # Alternating row colors
+
+        # Draw the background for this row
+        pygame.draw.rect(screen, row_color, (leaderboard_x, row_y, leaderboard_width, leaderboard_height))
+
+        # Determine the text color
+        user_text_color = highlight_color if username == current_user.login else text_color
+
+        # Render the rank number, username, and points
+        rank_text = font.render(str(index + 1), True, user_text_color)  # Render the rank number
+        name_text = font.render(username, True, user_text_color)  # Render the username
+        points_text = font.render(str(points), True, user_text_color)  # Render the points
+
+        # Calculate x positions for rank, username, and points
+        rank_x = leaderboard_x + 20  # 20 pixels from the left edge of the leaderboard
+        name_x = leaderboard_x + 60  # 60 pixels from the left edge of the leaderboard
+        points_x = leaderboard_x + leaderboard_width - 100  # 100 pixels
+
+        # Draw the rank number, username, and points text on the screen
+        screen.blit(rank_text, (rank_x, row_y + leaderboard_height / 2 - rank_text.get_height() / 2))
+        screen.blit(name_text, (name_x, row_y + leaderboard_height / 2 - name_text.get_height() / 2))
+        screen.blit(points_text, (points_x, row_y + leaderboard_height / 2 - points_text.get_height() / 2))
+
+        # Draw a border around the leaderboard if desired
+        border_color = (255, 255, 255)  # White color for the border
+        border_rect = pygame.Rect(leaderboard_x, leaderboard_y, leaderboard_width,
+                                  len(ranking_data) * leaderboard_height)
+        pygame.draw.rect(screen, border_color, border_rect, 2)  # 2 is the thickness of the border
+
+
 ids = None
 sorting_criteria = None
 scroll_offset = 0
@@ -631,7 +359,7 @@ scroll_speed = 30
 
 
 def render_events_table(screen, users, param=1):
-    from database_setup import db
+    from Database.database_setup import db
 
     def render_headers(sc, f, h, c_width, t_x=150, t_y=110, row_h=50, t_col=(0, 0, 0)):
         for index, (header, width) in enumerate(zip(h, c_width)):
@@ -787,60 +515,6 @@ def render_events_table(screen, users, param=1):
             render_scrollbar(screen, total_rows, visible_rows, table_x, table_y, table_height)
 
 
-# Add this function wherever it fits in your code.
-
-
-def render_ranking(screen, ranking_data, font, current_user, daily_ranking):
-    # Define colors
-    green_color = (0, 128, 0)  # Green color for the background of the leaderboard
-    light_green = (144, 238, 144)  # Light green for alternating rows
-    dark_green = (0, 100, 0)  # Dark green for alternating rows
-    text_color = (255, 255, 255)  # White for text
-    highlight_color = (255, 215, 0)  # Gold color for highlighting the current user
-
-    # Define leaderboard size and position
-    leaderboard_x = 100  # X position of the leaderboard
-    leaderboard_y = 100  # Y position of the leaderboard
-    leaderboard_width = 600  # Width of the leaderboard
-    leaderboard_height = 50  # Height of each row in the leaderboard
-
-    # Draw the leaderboard background
-    pygame.draw.rect(screen, green_color,
-                     (leaderboard_x, leaderboard_y, leaderboard_width, len(ranking_data) * leaderboard_height))
-
-    # Loop through the ranking data and draw each row
-    for index, (username, points) in enumerate(ranking_data):
-        row_y = leaderboard_y + index * leaderboard_height  # Y position of the current row
-        row_color = light_green if index % 2 == 0 else dark_green  # Alternating row colors
-
-        # Draw the background for this row
-        pygame.draw.rect(screen, row_color, (leaderboard_x, row_y, leaderboard_width, leaderboard_height))
-
-        # Determine the text color
-        user_text_color = highlight_color if username == current_user.login else text_color
-
-        # Render the rank number, username, and points
-        rank_text = font.render(str(index + 1), True, user_text_color)  # Render the rank number
-        name_text = font.render(username, True, user_text_color)  # Render the username
-        points_text = font.render(str(points), True, user_text_color)  # Render the points
-
-        # Calculate x positions for rank, username, and points
-        rank_x = leaderboard_x + 20  # 20 pixels from the left edge of the leaderboard
-        name_x = leaderboard_x + 60  # 60 pixels from the left edge of the leaderboard
-        points_x = leaderboard_x + leaderboard_width - 100  # 100 pixels
-
-        # Draw the rank number, username, and points text on the screen
-        screen.blit(rank_text, (rank_x, row_y + leaderboard_height / 2 - rank_text.get_height() / 2))
-        screen.blit(name_text, (name_x, row_y + leaderboard_height / 2 - name_text.get_height() / 2))
-        screen.blit(points_text, (points_x, row_y + leaderboard_height / 2 - points_text.get_height() / 2))
-
-        # Draw a border around the leaderboard if desired
-        border_color = (255, 255, 255)  # White color for the border
-        border_rect = pygame.Rect(leaderboard_x, leaderboard_y, leaderboard_width,
-                                  len(ranking_data) * leaderboard_height)
-        pygame.draw.rect(screen, border_color, border_rect, 2)  # 2 is the thickness of the border
-
-
 def render_button(screen, font, text, rect, is_selected):
     button_color = (100, 200, 100) if is_selected else (200, 200, 200)
     pygame.draw.rect(screen, button_color, rect)
@@ -875,13 +549,10 @@ def ranking(current_user):
         achievements_button_rect = pygame.Rect(210, 60, 150, 40)  # Przycisk do osiagniec
         achievements_all_button_rect = pygame.Rect(370, 60, 200, 40)  # Przycisk dla wszystkich osiągnięć
 
-        font = pygame.font.SysFont(None, 24)
+        font = pygame.font.SysFont(None, 20)
 
         user_dao = UserDao()
         user_list = user_dao.get_all()
-
-        current_date = datetime.now().strftime('%Y-%m-%d')
-        success = user_dao.add_points(user_id=current_user.id, points=10, date=current_date, category_name='Quiz')
 
         while ranking_opened:
             for event in pygame.event.get():
@@ -950,7 +621,8 @@ def ranking(current_user):
             else:
                 ranking_data = user_dao.get_ranking_data(user_list, 'daily' if daily_ranking else 'weekly')
 
-            if not (achievements_opened or statistics_opened or achievements_all_opened):  # zeby nie bylo wyrenderowanego leadboardu
+            if not (achievements_opened or statistics_opened or achievements_all_opened):
+                # zeby nie bylo wyrenderowanego leadboardu
                 render_ranking(ranking_screen, ranking_data, font, current_user, daily_ranking)
 
             if statistics_opened:
@@ -967,7 +639,7 @@ def ranking(current_user):
 
 def settings():
     pygame.time.delay(200)
-    font = pygame.font.SysFont("Yu Gothic UI", 30, bold=True)
+    # font = pygame.font.SysFont("Yu Gothic UI", 30, bold=True)
     global settings_opened
     print(settings_opened)
 
@@ -1093,17 +765,8 @@ def main_game_loop():
             command()
 
     def start_game():
-        print("hello")
-        from main_board import main
-        players = []
-        tmp = session.user_dao.get_by_id(session.session_user.id)
-        players.append({"id": tmp.id, "login": tmp.login})
-        if len(example_users) != 0:
-            for idx in example_users:
-                tmp = session.user_dao.get_by_id(idx)
-                players.append({"id": tmp.id, "login": tmp.login})
-        main(players)
-        # subprocess.run(["python", "main_board.py"])
+        subprocess.run(
+            ["python", "GameMain/player_options.py", str(session.session_user.login), str(session.session_user.id)])
         pygame.quit()
 
     def exit_game():
@@ -1159,7 +822,6 @@ def main_game_loop():
         handle_events(toggle_button, friend_list)
 
 
-session = SessionController()
 main_login_window(None)
 
 if session.check_if_logged():
