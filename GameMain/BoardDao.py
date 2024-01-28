@@ -57,6 +57,17 @@ class BoardDao:
         else:
             return None
 
+
+    def delete_user(self, user_login):
+        query = 'DELETE FROM board WHERE user_login = ?'
+        try:
+            self.conn.execute(query, (user_login,))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error deleting user: {e}")
+            return False
+
     def get_users_with_current_round(self, round_number):
         query = 'SELECT user_login FROM board WHERE round_number = ?'
         cursor = self.conn.execute(query, (round_number,))

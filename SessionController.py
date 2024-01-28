@@ -75,6 +75,7 @@ class SessionController:
         print(self.session_user)
         if self.check_password(self.session_user.login, password):
             self.user_dao.delete_user(self.session_user)
+            self.board_dao.delete_user(self.session_user.login)
             self.log_out(self.session_user.login)
             return True
         return False

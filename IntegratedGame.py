@@ -12,7 +12,6 @@ import subprocess
 # WSZELAKO ROZUMIANA DEFINICJA GUI
 session = SessionController()
 
-
 settings_opened = False
 ranking_opened = False
 
@@ -351,10 +350,12 @@ def render_ranking(screen, ranking_data, font, current_user, daily_ranking):
                                   len(ranking_data) * leaderboard_height)
         pygame.draw.rect(screen, border_color, border_rect, 2)  # 2 is the thickness of the border
 
+
 ids = None
 sorting_criteria = None
 scroll_offset = 0
 scroll_speed = 30
+
 
 def render_events_table(screen, users, param=1):
     from Database.database_setup import db
@@ -513,7 +514,6 @@ def render_events_table(screen, users, param=1):
             render_scrollbar(screen, total_rows, visible_rows, table_x, table_y, table_height)
 
 
-
 def render_button(screen, font, text, rect, is_selected):
     button_color = (100, 200, 100) if is_selected else (200, 200, 200)
     pygame.draw.rect(screen, button_color, rect)
@@ -620,7 +620,8 @@ def ranking(current_user):
             else:
                 ranking_data = user_dao.get_ranking_data(user_list, 'daily' if daily_ranking else 'weekly')
 
-            if not (achievements_opened or statistics_opened or achievements_all_opened):  # zeby nie bylo wyrenderowanego leadboardu
+            if not (
+                    achievements_opened or statistics_opened or achievements_all_opened):  # zeby nie bylo wyrenderowanego leadboardu
                 render_ranking(ranking_screen, ranking_data, font, current_user, daily_ranking)
 
             if statistics_opened:
@@ -720,7 +721,6 @@ def settings():
             create_button("Wyloguj", (settings_width // 2, 2 * settings_height // 3 - 20), log_out)
             create_button("Usuń konto", (settings_width // 2, 2 * settings_height // 3 + 80), delete_user_form)
             pygame.display.flip()
-
 
 
 # GRA SAMA W SOBIE

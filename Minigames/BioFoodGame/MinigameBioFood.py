@@ -1,6 +1,7 @@
+import sys
+
 import pygame
 import random
-import sys
 
 
 class EkologicznySnake:
@@ -147,6 +148,8 @@ class EkologicznySnake:
 
             if self.zdrowie <= 0 or self.wynik == 100:
                 self.koniec_gry()
+                self.ekran.fill(self.WHITE)
+                return self.wynik
 
             self.zegar.tick(self.FPS)
 
@@ -167,5 +170,4 @@ class EkologicznySnake:
                     czekaj = False
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     czekaj = False
-        pygame.quit()
-        sys.exit()
+        return self.wynik

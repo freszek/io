@@ -9,6 +9,7 @@ from GameMain.round_ended_window import RoundEndedInfo
 from Player.player import Player
 from BoardDao import BoardDao
 from time_manager import TimeManager
+from statistic import Statistic
 from game_ended import GameEndedChecker
 
 
@@ -60,7 +61,7 @@ def round_loop(login, user_id):
     players = []
     for i in range(0, num_of_players):
         player = Player(player_data[i]['user_login'],
-                        player_data[i]['board_position'], player_data[i]['avatar_img'], user_id,
+                        player_data[i]['board_position'], player_data[i]['avatar_img'], player_data[i]['id'],
                         player_data[i]['round_number'])
         players.append(player)
         mglobals.PLAYER_OBJ[player_data[i]['user_login']] = players[i]
@@ -70,10 +71,11 @@ def round_loop(login, user_id):
 
     time_manager = TimeManager(round_dao.get_all_rounds()[round_dao.get_highest_round_number()]['time_started'],
                                (1000, 30))
-
+    statistics = Statistic((1000, 300), players)
     # Setting player info box
     mglobals.PLAYER_NAME_SPRITE[currentplayer.player_name].set_x_y(350, 120)
     mglobals.CURRENTPLAYER_IMG[currentplayer.player_name].set_x_y(480, 115)
+
 
     can_roll = check_round_hierarchy(players, currentplayer)
     while True:
@@ -83,6 +85,7 @@ def round_loop(login, user_id):
             ended = True
         time_manager.render_time(mglobals.GD)
         time_manager.render_round_info(mglobals.GD, round_dao.get_highest_round_number())
+        statistics.render_score(mglobals.GD)
         info = has_round_ended(players)
         if info and not ended:
             number = currentplayer.round_number

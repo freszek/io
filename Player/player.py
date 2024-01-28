@@ -38,7 +38,7 @@ class PlayerMovement:
 
     def choose_mini_game(self):
         random_number = random.randint(0, 4)
-        # random_number = 1
+        # random_number = 2
         return self.game_list[random_number]
 
 
@@ -52,18 +52,18 @@ class PlayerMovement:
         print("pozycja" + str(self.position))
 
         # =============================================================================
-        # self.result_game = 0
-        # if self.position != 0:
-        #     self.game_mini = self.choose_mini_game()
-        #     while self.result_game < 5:
-        #         self.result_game = self.game_mini.startMinigame()
-        # self.result += self.result_game
-        #
+        self.result_game = 0
+        if self.position != 0:
+            self.game_mini = self.choose_mini_game()
+            while self.result_game < 5:
+                self.result_game = self.game_mini.startMinigame()
+        self.result += self.result_game
+
         user_dao = UserDao()
-        #
-        # current_date = datetime.now().strftime('%Y-%m-%d')
-        # user_dao.add_points(user_id=self.player_id, points=int(self.result_game),
-        #                     date=current_date, category_name=self.game_mini.minigameName, round_number=self.round_number)
+
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        user_dao.add_points(user_id=self.player_id, points=int(self.result_game),
+                            date=current_date, category_name=self.game_mini.minigameName, round_number=self.round_number)
         # =============================================================================
 
         if old_position + count >= mglobals.BOARD_SQUARES:
@@ -206,6 +206,7 @@ class Player:
     def __init__(self, player_name, initial_position, player_img, player_id, round_number):
         self.player_name = player_name
         self.round_number = round_number
+        self.player_id = player_id
         self.color = mglobals.PLAYER_ONE_COLOR \
             if self.player_name == player_name \
             else mglobals.PLAYER_TWO_COLOR
@@ -213,3 +214,4 @@ class Player:
         self.pm = PlayerMovement(self.player_name, pygame.image.load(player_img), initial_position, player_id, round_number) \
             if self.player_name == player_name \
             else PlayerMovement(self.player_name, mglobals.P2_IMG, initial_position, player_id, round_number)
+        self.score = self.pm.result
