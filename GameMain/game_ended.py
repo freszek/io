@@ -1,7 +1,10 @@
-from tkinter import messagebox
 import pygame
-import subprocess
 import sys
+
+from BoardDao import BoardDao
+from GameMain.RoundDao import RoundDao
+from User.UserDao import UserDao
+
 
 pygame.init()
 
@@ -18,7 +21,7 @@ class GameEndedChecker:
         return self.game_ended
 
 
-    def thank_you_menu(self):
+    def thank_you_menu(self, leader):
         width, height = 800, 600
         screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption("Green Game - Thank You!")
@@ -52,11 +55,16 @@ class GameEndedChecker:
                 command()
 
         def finish_game():
+            dao = BoardDao()
+            round_dao = RoundDao()
+            user_dao = UserDao()
+            dao.prepare_databse()
+            round_dao.prepare_database()
+            user_dao.prepare_database()
             pygame.quit()
             sys.exit()
 
         def show_game_statistics():
-            # Add logic to display game statistics
             pass
 
         while True:
@@ -69,8 +77,11 @@ class GameEndedChecker:
 
             font_caption = pygame.font.SysFont("Yu Gothic UI", 72, bold=True)  # Set the font size for the caption
             game_ended_caption = font_caption.render("Game Ended", True, (*dark_green, 200))
+            game_ended_caption2 = font_caption.render(f"Winner: {leader}", True, (*dark_green, 200))
+            game_ended_rect2 = game_ended_caption2.get_rect(center=(width // 2, height // 2))
             game_ended_rect = game_ended_caption.get_rect(center=(width // 2, height // 3))
             screen.blit(game_ended_caption, game_ended_rect)
+            screen.blit(game_ended_caption2, game_ended_rect2)
 
             buttons_data = [
                 {"text": "Finish", "position": (width // 2, 2 * height // 3 - 20), "command": finish_game},

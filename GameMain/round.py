@@ -11,6 +11,7 @@ from BoardDao import BoardDao
 from time_manager import TimeManager
 from statistic import Statistic
 from game_ended import GameEndedChecker
+from User.UserDao import UserDao
 
 
 def roll():
@@ -57,6 +58,7 @@ def round_loop(login, user_id):
     round_dao = RoundDao()
     num_of_players = dao.get_user_count()
     player_data = dao.get_all_players()
+    user_dao = UserDao()
 
     players = []
     for i in range(0, num_of_players):
@@ -79,8 +81,8 @@ def round_loop(login, user_id):
 
     can_roll = check_round_hierarchy(players, currentplayer)
     while True:
-        if currentplayer.round_number > 0:
-            ended = round_dao.get_round_by_number(currentplayer.round_number - 1)['displayed']
+        if 0 < currentplayer.round_number:
+            ended = round_dao.get_round_by_number(currentplayer.round_number-1)['displayed']
         else:
             ended = True
         time_manager.render_time(mglobals.GD)
@@ -93,9 +95,10 @@ def round_loop(login, user_id):
             game_ended_checker.check_game_ended(round_dao.get_highest_round_number())
             if game_ended_checker.has_game_ended():
                 round_dao.end_round(number - 1)
-                game_ended_checker.thank_you_menu()
+                game_ended_checker.thank_you_menu(statistics.get_leader())
+
             else:
-                round_info = RoundEndedInfo(number - 1)
+                round_info = RoundEndedInfo(number - 1, statistics.get_leader())
                 round_info.display_info()
                 mglobals.init()
                 mainboard_ui.init_dice()
@@ -107,6 +110,7 @@ def round_loop(login, user_id):
                 round_dao.end_round(number - 1)
                 round_dao.start_round(number)
                 time_manager.update_round(round_dao.get_all_rounds()[currentplayer.round_number]['time_started'])
+                mainboard_ui.init_dice()
 
                 players = []
                 for i in range(0, num_of_players):

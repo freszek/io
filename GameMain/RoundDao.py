@@ -86,5 +86,10 @@ class RoundDao:
 
         return rounds
 
+    def prepare_database(self):
+        query = 'DELETE FROM round'
+        self.conn.execute(query)
+        self.conn.commit()
+
     def close(self):
         self.conn.close()

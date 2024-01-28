@@ -2,10 +2,11 @@ import pygame
 import sys
 
 class RoundEndedInfo:
-    def __init__(self, round_number):
+    def __init__(self, round_number, leader):
         self.round_number = round_number
         self.info_displayed = False
         self.closed = False
+        self.leader = leader
 
     def display_info(self):
         if not self.info_displayed:
@@ -26,6 +27,8 @@ class RoundEndedInfo:
         font = pygame.font.Font(None, 96)
         text = font.render(f"Round {self.round_number} Ended!", True, (255, 255, 255))
         text_rect = text.get_rect(center=(600, 200))
+        text2 = font.render(f"Current leader: {self.leader}", True, (255, 255, 255))
+        text2_rect = text2.get_rect(center=(600, 300))
 
         button_stats = pygame.Rect(200, 600, 400, 100)
         button_next_round = pygame.Rect(600, 600, 400, 100)
@@ -43,6 +46,7 @@ class RoundEndedInfo:
         text_next_round = font_button.render("Start Next Round", True, (255, 255, 255))
 
         screen.blit(text, text_rect)
+        screen.blit(text2, text2_rect)
         screen.blit(text_next_round, (button_next_round.x + 50, button_next_round.y + 30))
 
         pygame.display.flip()

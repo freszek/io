@@ -146,5 +146,10 @@ class BoardDao:
             print(f"Error updating avatar image: {e}")
             return False
 
+    def prepare_database(self):
+        query = 'UPDATE board SET board_position = NULL, avatar_img = NULL, round_number = NULL'
+        self.conn.execute(query)
+        self.conn.commit()
+
     def close(self):
         self.conn.close()

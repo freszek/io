@@ -302,3 +302,11 @@ class UserDao:
 
     def close(self):
         self.conn.close()
+
+    def prepare_database(self):
+        query = 'DELETE FROM points'
+        self.conn.execute(query)
+        self.conn.commit()
+        query = 'DELETE FROM statistics'
+        self.conn.execute(query)
+        self.conn.commit()

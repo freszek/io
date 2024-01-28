@@ -45,33 +45,30 @@ class PlayerMovement:
     def advance(self, count):
         old_position = self.position
         self.position = (self.position + count) % mglobals.BOARD_SQUARES
-        print("x " + str(self.x) + " y " + str(self.y))
         self.reposition()
-        print("x " + str(self.x) + " y " + str(self.y))
         self.render()
-        print("pozycja" + str(self.position))
 
         # =============================================================================
-        self.result_game = 0
-        if self.position != 0:
-            self.game_mini = self.choose_mini_game()
-            while self.result_game < 5:
-                self.result_game = self.game_mini.startMinigame()
-        self.result += self.result_game
-
-        user_dao = UserDao()
-
-        current_date = datetime.now().strftime('%Y-%m-%d')
-        user_dao.add_points(user_id=self.player_id, points=int(self.result_game),
-                            date=current_date, category_name=self.game_mini.minigameName, round_number=self.round_number)
+        # self.result_game = 0
+        # if self.position != 0:
+        #     self.game_mini = self.choose_mini_game()
+        #     while self.result_game < 5:
+        #         self.result_game = self.game_mini.startMinigame()
+        # self.result += self.result_game
+        #
+        # user_dao = UserDao()
+        #
+        # current_date = datetime.now().strftime('%Y-%m-%d')
+        # user_dao.add_points(user_id=self.player_id, points=int(self.result_game),
+        #                     date=current_date, category_name=self.game_mini.minigameName, round_number=self.round_number)
         # =============================================================================
 
-        if old_position + count >= mglobals.BOARD_SQUARES:
-            eventscore = game(self.player_name)
-            current_date = datetime.now().strftime('%Y-%m-%d')
-            user_dao.add_points(user_id=self.player_id, points=int(eventscore),
-                                date=current_date, category_name="EVENT",
-                                round_number=self.round_number)
+        # if old_position + count >= mglobals.BOARD_SQUARES:
+        #     eventscore = game(self.player_name)
+        #     current_date = datetime.now().strftime('%Y-%m-%d')
+        #     user_dao.add_points(user_id=self.player_id, points=int(eventscore),
+        #                         date=current_date, category_name="EVENT",
+        #                         round_number=self.round_number)
 
         utils.draw_board()
         self.render()
