@@ -10,14 +10,14 @@ class RoundEndedInfo:
 
     def display_info(self):
         if not self.info_displayed:
-            print(f"Round {self.round_number} ended!")
+            print(f"Round {self.round_number+1} ended!")
             self.info_displayed = True
             self.show_pygame_scene()
 
     def show_pygame_scene(self):
         pygame.init()
         screen = pygame.display.set_mode((1200, 800))
-        pygame.display.set_caption(f"Round {self.round_number} Ended!")
+        pygame.display.set_caption(f"Round {self.round_number+1} Ended!")
 
         # Load the background image
         background_image = pygame.image.load("background.jpg")
@@ -25,7 +25,7 @@ class RoundEndedInfo:
         screen.blit(background_image, (0, 0))
 
         font = pygame.font.Font(None, 96)
-        text = font.render(f"Round {self.round_number} Ended!", True, (255, 255, 255))
+        text = font.render(f"Round {self.round_number+1} Ended!", True, (255, 255, 255))
         text_rect = text.get_rect(center=(600, 200))
         text2 = font.render(f"Current leader: {self.leader}", True, (255, 255, 255))
         text2_rect = text2.get_rect(center=(600, 300))

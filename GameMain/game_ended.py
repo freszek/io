@@ -58,7 +58,7 @@ class GameEndedChecker:
             dao = BoardDao()
             round_dao = RoundDao()
             user_dao = UserDao()
-            dao.prepare_databse()
+            dao.prepare_database()
             round_dao.prepare_database()
             user_dao.prepare_database()
             pygame.quit()

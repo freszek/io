@@ -147,7 +147,7 @@ class BoardDao:
             return False
 
     def prepare_database(self):
-        query = 'UPDATE board SET board_position = NULL, avatar_img = NULL, round_number = NULL'
+        query = 'UPDATE board SET board_position = 0, avatar_img = "", round_number = 0'
         self.conn.execute(query)
         self.conn.commit()
 
